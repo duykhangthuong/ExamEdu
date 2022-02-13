@@ -78,7 +78,7 @@ namespace ExamEdu.Controllers
 
             if (isModuleExist)
             {
-                return BadRequest(new ResponseDTO(409, "Module already exists"));
+                return Conflict(new ResponseDTO(409, "Module already exists"));
             }
 
             int result = await _moduleService.InsertNewModule(moduleInput);
