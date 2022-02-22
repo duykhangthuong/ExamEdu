@@ -7,6 +7,7 @@ namespace BackEnd.DTO.ExamQuestionsDTO
 {
     public class AnswerContentResponse
     {
+        public int AnswerId { get; set; }
         public string AnswerContent { get; set; }
     }
 }

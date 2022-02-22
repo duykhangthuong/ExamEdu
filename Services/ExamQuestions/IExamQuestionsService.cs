@@ -7,6 +7,7 @@ namespace BackEnd.Services.ExamQuestions
 {
     public interface IExamQuestionsService
     {
-        Task<List<int>> GetListQuestionIdByExamIdAndStudentId(int examId, int studentId, bool isFinalExam);
+        Task<List<int>> GetListQuestionIdByExamIdAndExamCode(int examId, int examCode, bool isFinalExam);
+        Task<int> GetRandomExamCodeByExamId(int examId, bool isFinalExam);
     }
 }

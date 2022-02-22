@@ -16,29 +16,41 @@ namespace BackEnd.Services.ExamQuestions
         }
 
         /// <summary>
-        /// Get a list of question id by exam id and student id
+        /// Get a list of question id by exam id and exam code
         /// </summary>
         /// <param name="examId"></param>
-        /// <param name="studentId"></param>
+        /// <param name="examCode"></param>
         /// <param name="isFinalExam"></param>
         /// <returns></returns>
-        public async Task<List<int>> GetListQuestionIdByExamIdAndStudentId(int examId, int studentId, bool isFinalExam)
+        public async Task<List<int>> GetListQuestionIdByExamIdAndExamCode(int examId, int examCode, bool isFinalExam)
         {
             if (isFinalExam)
             {
-                return await (from e in _dataContext.Exam_FEQuestions
-                              join std in _dataContext.StudentFEAnswers
-                              on e.ExamFEQuestionId equals std.ExamFEQuestionId
-                              where e.ExamId == examId && std.StudentId == studentId
-                              select e.FEQuestionId).ToListAsync();
+                return await _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId && e.ExamCode == examCode).Select(e => e.FEQuestionId).ToListAsync();
             }
             else
             {
-                return await (from e in _dataContext.ExamQuestions
-                              join std in _dataContext.StudentAnswers
-                              on e.ExamQuestionId equals std.ExamQuestionId
-                              where e.ExamId == examId && std.StudentId == studentId
-                              select e.QuestionId).ToListAsync();
+                return await _dataContext.ExamQuestions.Where(e => e.ExamId == examId && e.ExamCode == examCode).Select(e => e.QuestionId).ToListAsync();
+            }
+        }
+
+        public async Task<int> GetRandomExamCodeByExamId(int examId, bool isFinalExam)
+        {
+            Random rand = new Random();
+            int toSkip;
+            if (isFinalExam)
+            {
+                var examCodeList = _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId).Select(e => e.ExamCode);
+                toSkip = rand.Next(1, examCodeList.Count());
+                //return await _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId).OrderBy(r => Guid.NewGuid()).Select(e => e.ExamCode).FirstOrDefaultAsync();
+                return await examCodeList.Skip(toSkip).Take(1).FirstOrDefaultAsync();
+            }
+            else
+            {
+                var examCodeList = _dataContext.ExamQuestions.Where(e => e.ExamId == examId).Select(e => e.ExamCode);
+                toSkip = rand.Next(1, examCodeList.Count());
+                //return await _dataContext.ExamQuestions.Where(e => e.ExamId == examId).OrderBy(r => Guid.NewGuid()).Select(e => e.ExamCode).FirstOrDefaultAsync();
+                return await examCodeList.Skip(toSkip).Take(1).FirstOrDefaultAsync();
             }
         }
     }

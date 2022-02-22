@@ -7,8 +7,13 @@ namespace BackEnd.DTO.ExamQuestionsDTO
 {
     public class ExamQuestionsResponse
     {
-        public string QuestionContent { get; set; }
-        public string QuestionImageURL { get; set; }
-        public List<AnswerContentResponse> Answers { get; set; }
+        public int ExamId { get; set; }
+        public bool isFinalExam { get; set; }
+        public string ModuleCode { get; set; }
+        public int DurationInMinute { get; set; }
+        //  public int ExamCode { get; set; } //xoa sau
+        public List<QuestionAnswerResponse> QuestionAnswer { get; set; }
+
+       
     }
 }

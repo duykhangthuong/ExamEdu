@@ -9,5 +9,6 @@ namespace examedu.Services
     {
         Task<Tuple<int,decimal>> getMCQMarkNonFinal(int examId, int studentId);
         Task<Tuple<int,decimal>> getMCQMarkFinal(int examId, int studentId);
+        Task<int> SaveStudentMark(decimal mark, int examId, int studentId);
     }
 }

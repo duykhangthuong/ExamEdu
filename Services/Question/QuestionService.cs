@@ -70,24 +70,27 @@ namespace examedu.Services
         /// <summary>
         /// Get a list of questions and answers by a list of question id
         /// </summary>
-        /// <param name="questionIdList"></param>
+        /// <param name="questionIdList">list of question id</param>
+        /// <param name="examId">use to get ExamQuestionId</param>
+        /// <param name="examCode">use to get ExamQuestionId</param>
         /// <param name="isFinalExam"></param>
         /// <returns></returns>
-        public async Task<List<ExamQuestionsResponse>> GetListExamQuestionsByListQuestionId(List<int> questionIdList, bool isFinalExam)
+        public async Task<List<QuestionAnswerResponse>> GetListQuestionAnswerByListQuestionId(List<int> questionIdList, int examId, int examCode, bool isFinalExam)
         {
-            List<ExamQuestionsResponse> examQuestResponseList = new List<ExamQuestionsResponse>();
+            List<QuestionAnswerResponse> questionAnswerList = new List<QuestionAnswerResponse>();
             if (isFinalExam)
             {
                 foreach (var questionId in questionIdList)
                 {
                     FEQuestion question = await _dataContext.FEQuestions.Where(q => q.FEQuestionId == questionId && q.ApproveAt != null).FirstOrDefaultAsync();
-                    var examQuestResponse = _mapper.Map<ExamQuestionsResponse>(question);
+                    var questionAnswerResponse = _mapper.Map<QuestionAnswerResponse>(question);
                     List<FEAnswer> answerList = await _dataContext.FEAnswers.Where(ans => ans.FEAnswerId == question.FEQuestionId).ToListAsync();
                     foreach (var answer in answerList)
                     {
-                        examQuestResponse.Answers.Add(_mapper.Map<AnswerContentResponse>(answer));
+                        questionAnswerResponse.Answers.Add(_mapper.Map<AnswerContentResponse>(answer));
                     }
-                    examQuestResponseList.Add(examQuestResponse);
+                    questionAnswerResponse.ExamQuestionId = await _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId && e.ExamCode == examCode && e.FEQuestionId == questionId).Select(e => e.ExamFEQuestionId).FirstOrDefaultAsync();
+                    questionAnswerList.Add(questionAnswerResponse);
                 }
             }
             else
@@ -95,16 +98,17 @@ namespace examedu.Services
                 foreach (int questionId in questionIdList)
                 {
                     Question question = await _dataContext.Questions.Where(q => q.QuestionId == questionId && q.ApproveAt != null).FirstOrDefaultAsync();
-                    var examQuestResponse = _mapper.Map<ExamQuestionsResponse>(question);
+                    var questionAnswerResponse = _mapper.Map<QuestionAnswerResponse>(question);
                     List<Answer> answerList = await _dataContext.Answers.Where(ans => ans.QuestionId == question.QuestionId).ToListAsync();
                     foreach (var answer in answerList)
                     {
-                        examQuestResponse.Answers.Add(_mapper.Map<AnswerContentResponse>(answer));
+                        questionAnswerResponse.Answers.Add(_mapper.Map<AnswerContentResponse>(answer));
                     }
-                    examQuestResponseList.Add(examQuestResponse);
+                    questionAnswerResponse.ExamQuestionId = await _dataContext.ExamQuestions.Where(e => e.ExamId == examId && e.ExamCode == examCode && e.QuestionId == questionId).Select(e => e.ExamQuestionId).FirstOrDefaultAsync();
+                    questionAnswerList.Add(questionAnswerResponse);
                 }
             }
-            return examQuestResponseList;
+            return questionAnswerList;
         }
     }
 }

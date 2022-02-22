@@ -15,6 +15,8 @@ namespace ExamEdu.DB.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool isFinalExam { get; set; }
         public bool IsCancelled { get; set; } = false;
+        public string Password { get; set; }
+        public string Room { get; set; }
 
         // 1 Teacher - many exam
         public int ProctorId { get; set; }
