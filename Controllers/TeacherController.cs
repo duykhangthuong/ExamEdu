@@ -7,6 +7,7 @@ using BackEnd.Services;
 using ExamEdu.Services;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
+using ExamEdu.DTO.ModuleDTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
@@ -22,27 +23,31 @@ namespace ExamEdu.Controllers
     {
         private readonly ITeacherService _teacherService;
         private readonly IClassModuleService _classModuleService;
+        private readonly IModuleService _moduleService;
         private readonly IMapper _mapper;
 
-        public TeacherController(ITeacherService teacherService, IClassModuleService classModuleService, IMapper mapper)
+        public TeacherController(ITeacherService teacherService, IClassModuleService classModuleService, IModuleService moduleService, IMapper mapper)
         {
             _teacherService = teacherService;
             _classModuleService = classModuleService;
+            _moduleService = moduleService;
             _mapper = mapper;
         }
 
         [HttpGet("ClassModule/{teacherId:int}")]
         public async Task<IActionResult> GetClassModuleOfTeacher(int teacherId, [FromQuery] PaginationParameter paginationParameter)
         {
-            (int totalRecord, IEnumerable<ClassModule> classModules) = await _classModuleService.GetClassModuleByTeacherId(teacherId, paginationParameter);
+            (int totalRecord, IEnumerable<Module> modules) = await _moduleService.getModulesWithClassModule(paginationParameter, teacherId);
             if (totalRecord == 0)
             {
                 return NotFound(new ResponseDTO(404, "No class module found"));
             }
 
-            IEnumerable<ClassModuleResponse> classModuleResponses = _mapper.Map<IEnumerable<ClassModuleResponse>>(classModules);
+            IEnumerable<ModuleTeacherResponse> classModuleResponses = _mapper.Map<IEnumerable<ModuleTeacherResponse>>(modules);
 
-            return Ok(new PaginationResponse<IEnumerable<ClassModuleResponse>>(totalRecord, classModuleResponses));
+            return Ok(new PaginationResponse<IEnumerable<ModuleTeacherResponse>>(totalRecord, classModuleResponses));
         }
+
+
     }
 }

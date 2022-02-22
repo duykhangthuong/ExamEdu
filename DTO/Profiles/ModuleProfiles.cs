@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO.ModuleDTO;
+using ExamEdu.DTO.ClassModuleDTO;
+using ExamEdu.DTO.ClassDTO;
 
 namespace ExamEdu.DTO.Profiles
 {
@@ -16,6 +18,11 @@ namespace ExamEdu.DTO.Profiles
             CreateMap<Module, ModuleInformationResponse>();
 
             CreateMap<ModuleInput, Module>();
+
+            //Map for ClassModuleResponse
+            CreateMap<Module, ModuleTeacherResponse>();
+            CreateMap<ClassModule, ClassModuleWithClassInfoResponse>();
+            CreateMap<Class, ClassNameResponse>();
         }
     }
 }

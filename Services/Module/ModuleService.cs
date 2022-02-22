@@ -78,6 +78,7 @@ namespace ExamEdu.Services
             return Tuple.Create(moduleList.Count, moduleList.GetPage(paginationParameter));
         }
 
+
         /// <summary>
         /// Insert a new module into the database
         /// </summary>
@@ -126,6 +127,23 @@ namespace ExamEdu.Services
             string temp = str.Normalize(System.Text.NormalizationForm.FormD);
             return regex.Replace(temp, String.Empty)
                         .Replace('\u0111', 'd').Replace('\u0110', 'D');
+        }
+
+        public async Task<Tuple<int, IEnumerable<Module>>> getModulesWithClassModule(PaginationParameter paginationParameter, int teacherId)
+        {
+            var result = from m in _db.Modules
+                         join cm in _db.ClassModules on m.ModuleId equals cm.ModuleId
+                         join c in _db.Classes on cm.ClassId equals c.ClassId
+                         select new Module
+                         {
+                             ModuleId = m.ModuleId,
+                             ModuleCode = m.ModuleCode,
+                             ModuleName = m.ModuleName,
+                             ClassModules = new List<ClassModule> { new ClassModule {ClassModuleId = cm.ClassModuleId, Class = c } }
+                         };
+            var modules = await result.ToListAsync();
+
+            return Tuple.Create(modules.Count, modules.GetPage(paginationParameter));
         }
     }
 }
