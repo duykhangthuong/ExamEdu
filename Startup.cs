@@ -11,6 +11,7 @@ using BackEnd.Services;
 using BackEnd.Services.ExamQuestions;
 using examedu.Services;
 using examedu.Services.Account;
+using examedu.Services.Classes;
 using ExamEdu.DB;
 using ExamEdu.DTO;
 using ExamEdu.Services;
@@ -96,6 +97,7 @@ namespace ExamEdu
             services.AddScoped<IStudentAnswerService, StudentAnswerService>();
             services.AddScoped<IExamQuestionsService, ExamQuestionsService>();
             services.AddScoped<IClassModuleService, ClassModuleService>();
+            services.AddScoped<IClassService, ClassService>();
 
             services.AddControllers().AddJsonOptions(options =>
             {
