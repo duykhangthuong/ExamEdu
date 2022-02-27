@@ -22,6 +22,10 @@ namespace ExamEdu.DB.Models
         public int ProctorId { get; set; }
         public Teacher Proctor { get; set; }
 
+        // 1 Teacher - many exam
+        public int? GraderId { get; set; }
+        public Teacher Grader { get; set; }
+
         //1 aca - many exam (as a supervisor)
         public int SupervisorId { get; set; }
         public AcademicDepartment Supervisor { get; set; }

@@ -24,7 +24,8 @@ namespace ExamEdu.DB.Models
         public ICollection<ClassModule> ClassModules { get; set; }
         
         //1 teacher - many exam
-        public ICollection<Exam> Exams { get; set; }
+        public ICollection<Exam> ExamsToProc { get; set; }
+        public ICollection<Exam> ExamsToGrade { get; set; }
 
         
     }

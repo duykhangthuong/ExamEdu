@@ -3,15 +3,17 @@ using System;
 using ExamEdu.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ExamEdu.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220225135240_AddNullable")]
+    partial class AddNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,9 +570,6 @@ namespace ExamEdu.Migrations
 
                     b.Property<float?>("Mark")
                         .HasColumnType("real");
-
-                    b.Property<bool>("NeedToGradeTextQuestion")
-                        .HasColumnType("boolean");
 
                     b.HasKey("StudentId", "ExamId");
 

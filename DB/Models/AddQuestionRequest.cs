@@ -12,7 +12,7 @@ namespace ExamEdu.DB.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public int RequesterId { get; set; }
         public Teacher Requester {get;set;}
-        public int ApproverId { get; set; }
+        public int? ApproverId { get; set; }
         public Teacher Approver { get; set; }
         public ICollection<Question> Questions { get; set; }
         public ICollection<FEQuestion> FEQuestions { get; set; }

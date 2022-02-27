@@ -3,15 +3,17 @@ using System;
 using ExamEdu.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ExamEdu.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220225092745_GraderAndBoolCheck")]
+    partial class GraderAndBoolCheck
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,7 +57,7 @@ namespace ExamEdu.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
 
-                    b.Property<int?>("ApproverId")
+                    b.Property<int>("ApproverId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -217,7 +219,7 @@ namespace ExamEdu.Migrations
                     b.Property<string>("ExamName")
                         .HasColumnType("text");
 
-                    b.Property<int?>("GraderId")
+                    b.Property<int>("GraderId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsCancelled")
@@ -652,7 +654,8 @@ namespace ExamEdu.Migrations
                     b.HasOne("ExamEdu.DB.Models.Teacher", "Approver")
                         .WithMany("AddQuestionApproves")
                         .HasForeignKey("ApproverId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.HasOne("ExamEdu.DB.Models.Teacher", "Requester")
                         .WithMany("AddQuestionRequests")
@@ -738,7 +741,8 @@ namespace ExamEdu.Migrations
                     b.HasOne("ExamEdu.DB.Models.Teacher", "Grader")
                         .WithMany("ExamsToGrade")
                         .HasForeignKey("GraderId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("ExamEdu.DB.Models.Module", "Module")
                         .WithMany("Exams")

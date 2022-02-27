@@ -17,5 +17,7 @@ namespace ExamEdu.DB.Models
         public float? Mark { get; set; }
         public DateTime? FinishAt { get; set; }
         public string Comment { get; set; }
+
+        public bool NeedToGradeTextQuestion { get; set; }
     }
 }

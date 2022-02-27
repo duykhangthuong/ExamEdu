@@ -139,7 +139,81 @@ namespace examedu.Services
             var studentExamInfos = await _db.StudentExamInfos.FirstOrDefaultAsync(s => s.ExamId == examId
                                                                                        && s.StudentId == studentId);
             studentExamInfos.Mark = (float)mark;
-            studentExamInfos.FinishAt=DateTime.Now;
+            studentExamInfos.FinishAt = DateTime.Now;
+
+            var isFinalExam = _db.Exams.Where(e => e.ExamId == examId).Select(e => e.isFinalExam).FirstOrDefault();
+
+            if (isFinalExam is false)
+            {
+                var studentAnswersList = _db.StudentAnswers.Join(_db.ExamQuestions,
+                                                    e => e.ExamQuestionId,
+                                                    s => s.ExamQuestionId,
+                                                    (s, e) => new
+                                                    {
+                                                        StudentAnswer = s.StudentAnswerContent,
+                                                        StudentID = s.StudentId,
+                                                        ExamQuestionID = s.ExamQuestionId,
+                                                        ExamID = e.ExamId,
+                                                        QuestionID = e.QuestionId,
+                                                        QuestionMark = e.QuestionMark
+                                                    }).Where(s => s.StudentID == studentId && s.ExamID == examId)
+                                                    .Join(_db.Questions,
+                                                    sa => sa.QuestionID,
+                                                    q => q.QuestionId,
+                                                    (sa, q) => new
+                                                    {
+                                                        StudentAnswer = sa.StudentAnswer,
+                                                        studentId = sa.StudentID,
+                                                        ExamQuestionID = sa.ExamQuestionID,
+                                                        QuestionTypeID = q.QuestionTypeId,
+                                                        QuestionID = sa.QuestionID,
+                                                        QuestionMark = sa.QuestionMark
+                                                    });
+                //Check nếu số lượng câu hỏi tự luận bằng 0 thì không cần chấm bài tự luận
+                if (studentAnswersList.Where(s => s.QuestionTypeID == 2).Count() == 0)
+                {
+                    studentExamInfos.NeedToGradeTextQuestion = false;
+                }
+                else
+                {
+                    studentExamInfos.NeedToGradeTextQuestion = true;
+                }
+            }
+            else
+            {
+                var studentAnswersList = _db.StudentFEAnswers.Join(_db.Exam_FEQuestions,
+                                                e => e.ExamFEQuestionId,
+                                                s => s.ExamFEQuestionId,
+                                                (s, e) => new
+                                                {
+                                                    StudentAnswer = s.StudentAnswerContent,
+                                                    StudentID = s.StudentId,
+                                                    ExamQuestionID = s.ExamFEQuestionId,
+                                                    ExamID = e.ExamId,
+                                                    QuestionID = e.FEQuestionId,
+                                                    QuestionMark = e.QuestionMark
+                                                }).Where(s => s.StudentID == studentId && s.ExamID == examId)
+                                                .Join(_db.FEQuestions,
+                                                sa => sa.QuestionID,
+                                                q => q.FEQuestionId,
+                                                (sa, q) => new
+                                                {
+                                                    StudentAnswer = sa.StudentAnswer,
+                                                    studentId = sa.StudentID,
+                                                    ExamQuestionID = sa.ExamQuestionID,
+                                                    QuestionTypeID = q.QuestionTypeId,
+                                                    QuestionID = sa.QuestionID,
+                                                    QuestionMark = sa.QuestionMark
+                                                });
+                if (studentAnswersList.Where(s => s.QuestionTypeID == 2).Count() == 0)
+                {
+                    studentExamInfos.NeedToGradeTextQuestion = false;
+                }
+                else
+                {
+                    studentExamInfos.NeedToGradeTextQuestion = true;
+                }
+            }
             int rowAffected = _db.SaveChanges();
             return rowAffected;
         }

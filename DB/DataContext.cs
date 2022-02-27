@@ -270,13 +270,25 @@ namespace ExamEdu.DB
                .OnDelete(DeleteBehavior.SetNull); 
 
             // Connect teacher to exam as proctor
-            modelBuilder.Entity<Teacher>()
-               .HasMany(r => r.Exams)
-               .WithOne(a => a.Proctor)
-               .HasForeignKey(a => a.ProctorId)
-               .OnDelete(DeleteBehavior.SetNull);  
-            // Connect aca to exam as supervisor
+            // modelBuilder.Entity<Teacher>()
+            //    .HasMany(r => r.ExamsToProc)
+            //    .WithOne(a => a.Proctor)
+            //    .HasForeignKey(a => a.ProctorId)
+            //    .OnDelete(DeleteBehavior.SetNull);  
+            modelBuilder.Entity<Exam>()
+                .HasOne(e=>e.Grader)
+                .WithMany(t=>t.ExamsToGrade)
+                .HasForeignKey(t=>t.GraderId)
+                .OnDelete(DeleteBehavior.SetNull);
 
+            // Connect teacher to exam as grader
+            modelBuilder.Entity<Teacher>()
+               .HasMany(r => r.ExamsToGrade)
+               .WithOne(a => a.Grader)
+               .HasForeignKey(a => a.GraderId)
+               .OnDelete(DeleteBehavior.NoAction);  
+
+            // Connect aca to exam as supervisor
             modelBuilder.Entity<AcademicDepartment>()
                .HasMany(r => r.Exams)
                .WithOne(a => a.Supervisor)
