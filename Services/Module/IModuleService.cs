@@ -14,6 +14,7 @@ namespace ExamEdu.Services
         Task<Module> getModuleByID(int id);
         Task<Module> getModuleByCode(string code);
         Task<Tuple<int, IEnumerable<Module>>> getModules(PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<Module>>> getModulesByTeacherId(int teacherId, PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Module>>> getModulesWithClassModule(PaginationParameter paginationParameter, int teacherId);
         Task<int> InsertNewModule(ModuleInput moduleInput);
         Task<int> UpdateModule(ModuleInput moduleInput);

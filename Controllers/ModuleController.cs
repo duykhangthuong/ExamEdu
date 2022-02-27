@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.Services;
 using examedu.Services;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
@@ -20,14 +21,17 @@ namespace ExamEdu.Controllers
     public class ModuleController : ControllerBase
     {
         private readonly IModuleService _moduleService;
+        private readonly ITeacherService _teacherService;
         private readonly IStudentService _studentService;
         private readonly IMapper _mapper;
-        public ModuleController(IModuleService moduleService, IMapper mapper, IStudentService studentService)
+        public ModuleController(IModuleService moduleService, IMapper mapper, IStudentService studentService, ITeacherService teacherService)
         {
             _moduleService = moduleService;
             _mapper = mapper;
             _studentService = studentService;
+            _teacherService = teacherService;
         }
+
         [HttpGet("{studentId:int}")]
         public async Task<IActionResult> ViewModuleStudentHaveExam(int studentId, [FromQuery] PaginationParameter paginationParameter)
         {
@@ -63,6 +67,26 @@ namespace ExamEdu.Controllers
             }
             IEnumerable<ModuleInformationResponse> moduleInformationResponses = _mapper.Map<IEnumerable<ModuleInformationResponse>>(modules);
             return Ok(new PaginationResponse<IEnumerable<ModuleInformationResponse>>(totalRecord, moduleInformationResponses));
+        }
+
+        [HttpGet("teacherId/{teacherId:int}")]
+        public async Task<IActionResult> GetModules(int teacherId, [FromQuery] PaginationParameter paginationParameter)
+        {
+            //If teacher does not exist return bad request
+            if (await _teacherService.IsTeacherExist(teacherId) == false)
+            {
+                return BadRequest(new ResponseDTO(400, "Teacher does not exist"));
+            }
+
+            (int totalRecord, IEnumerable<Module> modules) = await _moduleService.getModulesByTeacherId(teacherId, paginationParameter);
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "No module found"));
+            }
+            //Map to moduleResponse
+            IEnumerable<ModuleResponse> moduleResponses = _mapper.Map<IEnumerable<ModuleResponse>>(modules);
+            return Ok(new PaginationResponse<IEnumerable<ModuleResponse>>(totalRecord, moduleResponses));
+
         }
 
         /// <summary>
