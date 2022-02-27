@@ -159,6 +159,11 @@ namespace ExamEdu.Controllers
             {
                 return BadRequest(new ResponseDTO(400, "Supervisor does not exist"));
             }
+            //Check if grader exist
+            if (await _teacherService.IsTeacherExist(input.GraderId) == false)
+            {
+                return BadRequest(new ResponseDTO(400, "Grader does not exist"));
+            }
             //Now we insert exam
             Exam exam = _mapper.Map<Exam>(input);
             Tuple<int, int> insertResult = await _examService.CreateExamInfo(exam);

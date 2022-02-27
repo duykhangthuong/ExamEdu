@@ -358,7 +358,7 @@ namespace ExamEdu.Services
         public async Task<Tuple<int, int>> CreateExamInfo(Exam exam)
         {
             //Insert exam to database
-            _db.Exams.Add(exam);
+            await _db.Exams.AddAsync(exam);
             int result = await _db.SaveChangesAsync();
             return new Tuple<int, int>(result, exam.ExamId);
 

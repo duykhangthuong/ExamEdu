@@ -37,6 +37,9 @@ namespace ExamEdu.DTO.ExamDTO
         //Supervisor id
         [Required]
         public int SupervisorId { get; set; }
+        //Grader id required
+        [Required]
+        public int GraderId { get; set; }
 
     }
 }
