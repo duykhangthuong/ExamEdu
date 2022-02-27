@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using examedu.DTO.StudentDTO;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
+using ExamEdu.DTO.PaginationDTO;
+using ExamEdu.Helper;
 using Microsoft.EntityFrameworkCore;
 
 namespace examedu.Services
@@ -95,6 +97,45 @@ namespace examedu.Services
         public async Task<Student> GetStudentByEmail(string email)
         {
             return await _dataContext.Students.Where(s => s.Email.ToLower().Equals(email.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+        }
+
+        public async Task<Tuple<int, IEnumerable<Student>>> GetStudents(int teacherId, int moduleId, PaginationParameter paginationParameter)
+        {
+            var queryResult = from student in _dataContext.Students
+                              join cms in _dataContext.Class_Module_Students on student.StudentId equals cms.StudentId
+                              join cm in _dataContext.ClassModules on cms.ClassModuleId equals cm.ClassModuleId
+                              where cm.ModuleId == moduleId && cm.TeacherId == teacherId && student.DeactivatedAt == null
+                              select new Student
+                              {
+                                  StudentId = student.StudentId,
+                                  Fullname = student.Fullname
+                              };
+            var students = await queryResult.ToListAsync();
+            return Tuple.Create(students.Count, students.GetPage(paginationParameter));
+        }
+
+        /// <summary>
+        /// Get students of a class by classId and pagination
+        /// </summary>
+        /// <param name="classModuleId">The classmodule's id</param>
+        /// <param name="paginationParameter">Pagination parameters</param>
+        /// <returns>
+        /// 
+        /// </returns>
+        public async Task<Tuple<int, IEnumerable<Student>>> GetStudents(int classModuleId, PaginationParameter paginationParameter)
+        {
+            var queryResult = from student in _dataContext.Students
+                              join cms in _dataContext.Class_Module_Students on student.StudentId equals cms.StudentId
+                              join cm in _dataContext.ClassModules on cms.ClassModuleId equals cm.ClassModuleId
+                              where cm.ClassModuleId == classModuleId && student.DeactivatedAt == null
+                              select new Student
+                              {
+                                  StudentId = student.StudentId,
+                                  Fullname = student.Fullname
+                              };
+            var students = await queryResult.ToListAsync();
+
+            return Tuple.Create(students.Count, students.GetPage(paginationParameter));
         }
     }
 }
