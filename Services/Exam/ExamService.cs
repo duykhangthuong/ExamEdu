@@ -361,24 +361,26 @@ namespace ExamEdu.Services
             _db.Exams.Add(exam);
             int result = await _db.SaveChangesAsync();
             return new Tuple<int, int>(result, exam.ExamId);
-            public async Task<Tuple<int, IEnumerable<StudentMarkResponse>>> GetResultExamByExamId(int examId, PaginationParameter paginationParameter)
-            {
-                var studentExamInfor = await _db.StudentExamInfos.Join(_db.Exams, sei => sei.ExamId, e => e.ExamId, (sei, e) => new { sei, e })
-                                                                .Join(_db.Students, x => x.sei.StudentId, s => s.StudentId, (x, s) => new { x, s })
-                                                                .Where(y => y.x.sei.ExamId == examId)
-                                                                .Select(y => new StudentMarkResponse
-                                                                {
-                                                                    ExamName = y.x.e.ExamName,
-                                                                    ExamDay = y.x.e.ExamDay,
-                                                                    StudentId = y.s.StudentId,
-                                                                    StudentName = y.s.Fullname,
-                                                                    FinishedAt = y.x.sei.FinishAt,
-                                                                    Mark = y.x.sei.Mark,
-                                                                    NeedToGradeTextQuestion = y.x.sei.NeedToGradeTextQuestion,
-                                                                }).ToListAsync();
-                int totalRecord = studentExamInfor.Count;
 
-                return new Tuple<int, IEnumerable<StudentMarkResponse>>(totalRecord, studentExamInfor.GetPage(paginationParameter));
-            }
+        }
+        public async Task<Tuple<int, IEnumerable<StudentMarkResponse>>> GetResultExamByExamId(int examId, PaginationParameter paginationParameter)
+        {
+            var studentExamInfor = await _db.StudentExamInfos.Join(_db.Exams, sei => sei.ExamId, e => e.ExamId, (sei, e) => new { sei, e })
+                                                            .Join(_db.Students, x => x.sei.StudentId, s => s.StudentId, (x, s) => new { x, s })
+                                                            .Where(y => y.x.sei.ExamId == examId)
+                                                            .Select(y => new StudentMarkResponse
+                                                            {
+                                                                ExamName = y.x.e.ExamName,
+                                                                ExamDay = y.x.e.ExamDay,
+                                                                StudentId = y.s.StudentId,
+                                                                StudentName = y.s.Fullname,
+                                                                FinishedAt = y.x.sei.FinishAt,
+                                                                Mark = y.x.sei.Mark,
+                                                                NeedToGradeTextQuestion = y.x.sei.NeedToGradeTextQuestion,
+                                                            }).ToListAsync();
+            int totalRecord = studentExamInfor.Count;
+
+            return new Tuple<int, IEnumerable<StudentMarkResponse>>(totalRecord, studentExamInfor.GetPage(paginationParameter));
         }
     }
+}
