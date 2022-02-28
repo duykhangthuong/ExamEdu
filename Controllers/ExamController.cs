@@ -37,7 +37,7 @@ namespace ExamEdu.Controllers
             {
                 return NotFound(new ResponseDTO(404, "Student not found"));
             }
-            (int totalRecord, IEnumerable<Exam> examSchedules) = await _examService.getExamByStudentId(studentId, paginationParameter);
+            (int totalRecord, IEnumerable<Exam> examSchedules) = await _examService.GetExamByStudentId(studentId, paginationParameter);
 
             if (totalRecord == 0)
             {
@@ -55,7 +55,7 @@ namespace ExamEdu.Controllers
         [HttpPost("byHand")]
         public async Task<IActionResult> CreateExamByHand(CreateExamByHandInput input)
         {
-            if (await _examService.getExamById(input.ExamId) is null)
+            if (await _examService.GetExamById(input.ExamId) is null)
             {
                 return BadRequest(new ResponseDTO(400, "Exam not existed"));
             }
@@ -93,7 +93,7 @@ namespace ExamEdu.Controllers
         [HttpGet("examInfor/{id:int}")]
         public async Task<ActionResult<ExamResponse>> GetExamById(int id)
         {
-            var exam = await _examService.getExamById(id);
+            var exam = await _examService.GetExamById(id);
             if(exam == null)
             {
                 return NotFound(new ResponseDTO(404, "Exam not found"));
