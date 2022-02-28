@@ -26,7 +26,7 @@ namespace ExamEdu.Services
         /// <param name="studentId"></param>
         /// <param name="paginationParameter"></param>
         /// <returns></returns>
-        public async Task<Tuple<int, IEnumerable<Exam>>> getExamByStudentId(int studentId, PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<Exam>>> GetExamByStudentId(int studentId, PaginationParameter paginationParameter)
         {
             var allExamOfStudent = await _db.StudentExamInfos.Where(e => e.StudentId == studentId).Select(e => e.ExamId).ToListAsync();
             if (allExamOfStudent.Count() == 0)
@@ -164,7 +164,7 @@ namespace ExamEdu.Services
             return 1;
         }
 
-        public async Task<Exam> getExamById(int id)
+        public async Task<Exam> GetExamById(int id)
         {
             return await _db.Exams.Where(e => e.ExamId == id).FirstOrDefaultAsync();
         }

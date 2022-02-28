@@ -31,7 +31,7 @@ namespace examedu.Controllers
         [HttpGet("markReport/{studentID:int}/{moduleID:int}")]
         public async Task<ActionResult<List<ModuleMarkDTO>>> MarkReport(int studentId, int moduleId)
         {
-            List<ModuleMarkDTO> listResult = await _studentService.getModuleMark(studentId, moduleId);
+            List<ModuleMarkDTO> listResult = await _studentService.GetModuleMark(studentId, moduleId);
             if(listResult == null)
             {
                 return BadRequest(new ResponseDTO(400, "StudentID or ModuleID not exist"));

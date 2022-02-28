@@ -8,6 +8,6 @@ namespace examedu.Services
 {
     public interface IQuestionService
     {
-        Task<List<QuestionResponse>> getQuestionByModuleLevel(int moduleID, int levelID, bool isFinalExam);
+        Task<List<QuestionResponse>> GetQuestionByModuleLevel(int moduleID, int levelID, bool isFinalExam);
     }
 }

@@ -9,7 +9,7 @@ namespace ExamEdu.Services
 {
     public interface IModuleService
     {
-        Task<Tuple<int, IEnumerable<Module>>> getAllModuleStudentHaveExam(int studentId,PaginationParameter paginationParameter);
-        Task<Module> getModuleByID(int id);
+        Task<Tuple<int, IEnumerable<Module>>> GetAllModuleStudentHaveExam(int studentId,PaginationParameter paginationParameter);
+        Task<Module> GetModuleByID(int id);
     }
 }

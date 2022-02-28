@@ -32,7 +32,7 @@ namespace examedu.Controllers
         [HttpGet("{moduleID:int}/{levelID:int}/{isFinalExam:bool}")]
         public async Task<ActionResult<List<QuestionResponse>>> ViewQuestionBank(int moduleID, int levelID, bool isFinalExam)
         {
-            if(await _moduleService.getModuleByID(moduleID) == null )
+            if(await _moduleService.GetModuleByID(moduleID) == null )
             {
                 return NotFound(new ResponseDTO(404, "Module Not Found"));
             }
@@ -43,7 +43,7 @@ namespace examedu.Controllers
             
             List<QuestionResponse> listResponse = new List<QuestionResponse>();
 
-            listResponse = await _questionService.getQuestionByModuleLevel(moduleID,levelID, isFinalExam);
+            listResponse = await _questionService.GetQuestionByModuleLevel(moduleID,levelID, isFinalExam);
             if(listResponse.Count <= 0)
             {
                 return NotFound(new ResponseDTO(404, "This Bank is empty"));

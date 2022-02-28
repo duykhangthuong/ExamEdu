@@ -10,9 +10,9 @@ namespace ExamEdu.Services
 {
     public interface IExamService
     {
-        Task<Tuple<int, IEnumerable<Exam>>> getExamByStudentId(int studentId, PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<Exam>>> GetExamByStudentId(int studentId, PaginationParameter paginationParameter);
         Task<int> CreateExamPaperByHand(CreateExamByHandInput input);
         Task<int> CreateExamPaperAuto(CreateExamAutoInput input);
-        Task<Exam> getExamById(int id);
+        Task<Exam> GetExamById(int id);
     }
 }

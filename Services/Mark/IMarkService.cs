@@ -7,7 +7,7 @@ namespace examedu.Services
 {
     public interface IMarkService
     {
-        Task<Tuple<int,decimal>> getMCQMarkNonFinal(int examId, int studentId);
-        Task<Tuple<int,decimal>> getMCQMarkFinal(int examId, int studentId);
+        Task<Tuple<int,decimal>> GetMCQMarkNonFinal(int examId, int studentId);
+        Task<Tuple<int,decimal>> GetMCQMarkFinal(int examId, int studentId);
     }
 }

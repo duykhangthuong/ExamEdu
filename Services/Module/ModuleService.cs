@@ -17,7 +17,7 @@ namespace ExamEdu.Services
         {
             _db = db;
         }
-        public async Task<Tuple<int, IEnumerable<Module>>> getAllModuleStudentHaveExam(int studentId,PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<Module>>> GetAllModuleStudentHaveExam(int studentId,PaginationParameter paginationParameter)
         {
             //Select all the exam student have attend
             var allExamOfStudent = await _db.StudentExamInfos.Where(e => e.StudentId == studentId).Select(e => e.ExamId).ToListAsync();
@@ -43,7 +43,7 @@ namespace ExamEdu.Services
 
         }
 
-        public async Task<Module> getModuleByID(int id)
+        public async Task<Module> GetModuleByID(int id)
         {
             return await _db.Modules.Where(m => m.ModuleId == id).FirstOrDefaultAsync();
         }

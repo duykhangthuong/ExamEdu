@@ -23,7 +23,7 @@ namespace examedu.Services
         /// <param name="studentID"></param>
         /// <param name="moduleID"></param>
         /// <returns>null if moduleID no exits, empty list if no exam available</returns>
-        public async Task<List<ModuleMarkDTO>> getModuleMark(int studentID, int moduleID)
+        public async Task<List<ModuleMarkDTO>> GetModuleMark(int studentID, int moduleID)
         {
             List<ModuleMarkDTO> listToRetrun = new List<ModuleMarkDTO>();
             Module moduleInfor = await _dataContext.Modules.Where(m => m.ModuleId == moduleID).FirstOrDefaultAsync();

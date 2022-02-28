@@ -27,7 +27,7 @@ namespace examedu.Services
         /// <param name="examId"></param>
         /// <param name="studentId"></param>
         /// <returns>(Status code: 0 if faile, 1 if success)(mark)</returns>
-        public async Task<Tuple<int,decimal>> getMCQMarkNonFinal(int examId, int studentId)
+        public async Task<Tuple<int,decimal>> GetMCQMarkNonFinal(int examId, int studentId)
         {
             var studentAnswersList = await _db.StudentAnswers.Join(_db.ExamQuestions,
                                                 e => e.ExamQuestionId,
@@ -81,7 +81,7 @@ namespace examedu.Services
         /// <param name="examId"></param>
         /// <param name="studentId"></param>
         /// <returns>(Status code: 0 if faile, 1 if success)(mark)</returns>
-        public async Task<Tuple<int,decimal>> getMCQMarkFinal(int examId, int studentId)
+        public async Task<Tuple<int,decimal>> GetMCQMarkFinal(int examId, int studentId)
         {
             var studentAnswersList = await _db.StudentFEAnswers.Join(_db.Exam_FEQuestions,
                                                 e => e.ExamFEQuestionId,

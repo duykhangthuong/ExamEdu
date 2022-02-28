@@ -74,7 +74,7 @@ namespace ExamEdu.Controllers
         [HttpPost("autoGenerate")]
         public async Task<IActionResult> CreateExamAuto(CreateExamAutoInput input)
         {
-            if(await _examService.getExamById(input.ExamId) is null)
+            if(await _examService.GetExamById(input.ExamId) is null)
             {
                 return BadRequest(new ResponseDTO(400, "Exam not existed"));
             }

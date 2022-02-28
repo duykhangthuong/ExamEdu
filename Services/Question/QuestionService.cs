@@ -27,7 +27,7 @@ namespace examedu.Services.Question
         /// <param name="levelID"></param>
         /// <param name="isFinalExam"></param>
         /// <returns></returns>
-        public async Task<List<QuestionResponse>> getQuestionByModuleLevel(int moduleID, int levelID, bool isFinalExam)
+        public async Task<List<QuestionResponse>> GetQuestionByModuleLevel(int moduleID, int levelID, bool isFinalExam)
         {
             List<QuestionResponse> listResponse = new List<QuestionResponse>();
             if (isFinalExam)
