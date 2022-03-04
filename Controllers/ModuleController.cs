@@ -69,7 +69,7 @@ namespace ExamEdu.Controllers
             return Ok(new PaginationResponse<IEnumerable<ModuleInformationResponse>>(totalRecord, moduleInformationResponses));
         }
 
-        [HttpGet("teacherId/{teacherId:int}")]
+        [HttpGet("teacher/{teacherId:int}")]
         public async Task<IActionResult> GetModules(int teacherId, [FromQuery] PaginationParameter paginationParameter)
         {
             //If teacher does not exist return bad request

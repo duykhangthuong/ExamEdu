@@ -134,6 +134,7 @@ namespace ExamEdu.Services
             var result = from m in _db.Modules
                          join cm in _db.ClassModules on m.ModuleId equals cm.ModuleId
                          join c in _db.Classes on cm.ClassId equals c.ClassId
+                         where cm.TeacherId == teacherId
                          select new Module
                          {
                              ModuleId = m.ModuleId,
