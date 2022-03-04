@@ -14,6 +14,7 @@ using examedu.Services.Account;
 using examedu.Services.Classes;
 using ExamEdu.DB;
 using ExamEdu.DTO;
+using ExamEdu.Hubs;
 using ExamEdu.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -98,6 +99,8 @@ namespace ExamEdu
             services.AddScoped<IExamQuestionsService, ExamQuestionsService>();
             services.AddScoped<IClassModuleService, ClassModuleService>();
             services.AddScoped<IClassService, ClassService>();
+
+            services.AddSignalR();
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -200,6 +203,7 @@ namespace ExamEdu
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<NotifyHub>("/hubs/notification");
             });
         }
     }

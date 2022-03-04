@@ -4,9 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackEnd.DTO.ExamQuestionsDTO;
+using BackEnd.DTO.QuestionDTO;
 using examedu.DTO.QuestionDTO;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
+using ExamEdu.DTO.PaginationDTO;
+using ExamEdu.Helper;
 using Microsoft.EntityFrameworkCore;
 
 namespace examedu.Services
@@ -109,6 +112,66 @@ namespace examedu.Services
                 }
             }
             return questionAnswerList;
+        }
+
+        public async Task<int> InsertNewRequestAddQuestions(AddQuestionRequest addQuestionRequest)
+        {
+            using (var dbContextTransaction = _dataContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    int rowInserted = 0;
+                    _dataContext.AddQuestionRequests.Add(addQuestionRequest);
+                    rowInserted = await _dataContext.SaveChangesAsync();
+                    dbContextTransaction.Commit();
+                    return rowInserted;
+                }
+                catch (Exception)
+                {
+                    dbContextTransaction.Rollback();
+                    return 0;
+                }
+            }
+        }
+
+        public async Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionBank(PaginationParameter paginationParameter)
+        {
+            IQueryable<AddQuestionRequest> requests = _dataContext.AddQuestionRequests;
+            if (paginationParameter.SearchName != "")
+            {
+                requests = requests.Where(r => EF.Functions.ToTsVector("simple", EF.Functions.Unaccent(r.Requester.Fullname.ToLower()))
+                      .Matches(EF.Functions.ToTsQuery("simple", EF.Functions.Unaccent(paginationParameter.SearchName.ToLower()))));
+            }
+
+            IEnumerable<AddQuestionRequest> requestList = await requests
+                                                .GetCount(out var totalRecord)
+                                                .GetPage(paginationParameter)
+                                                .Select(r => new AddQuestionRequest
+                                                {
+                                                    AddQuestionRequestId = r.AddQuestionRequestId,
+                                                    Requester = new Teacher
+                                                    {
+                                                        Fullname = r.Requester.Fullname
+                                                    },
+                                                    CreatedAt = r.CreatedAt,
+                                                    Description = r.Description,
+                                                    Questions = r.Questions,
+                                                    FEQuestions = r.FEQuestions.ToList(),
+                                                    ApproverId = r.ApproverId,
+                                                })
+                                                .OrderByDescending(r => r.CreatedAt)
+                                                .ToListAsync();
+
+            return Tuple.Create(totalRecord, requestList);
+        }
+
+        public bool IsFinalExamBank(int addQuestionRequestId)
+        {
+            if (_dataContext.FEQuestions.Where(q => q.AddQuestionRequestId == addQuestionRequestId).First() != null)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

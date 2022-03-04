@@ -8,6 +8,7 @@ namespace examedu.Services
 {
     public interface ILevelService
     {
-       public Task<Level> getLevelByID(int id);
+        public Task<Level> getLevelByID(int id);
+        bool IsLevelExist(int levelId);
     }
 }

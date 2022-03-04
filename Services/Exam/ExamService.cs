@@ -46,6 +46,7 @@ namespace ExamEdu.Services
                     ExamDay = e.ExamDay,
                     DurationInMinute = e.DurationInMinute,
                     ModuleId = e.ModuleId,
+                    Password = e.Password,
                     Module = new Module
                     {
                         ModuleCode = e.Module.ModuleCode
@@ -378,6 +379,7 @@ namespace ExamEdu.Services
                                                                 ExamDay = y.x.e.ExamDay,
                                                                 StudentId = y.s.StudentId,
                                                                 StudentName = y.s.Fullname,
+                                                                StudentEmail = y.s.Email,
                                                                 FinishedAt = y.x.sei.FinishAt,
                                                                 Mark = y.x.sei.Mark,
                                                                 NeedToGradeTextQuestion = y.x.sei.NeedToGradeTextQuestion,

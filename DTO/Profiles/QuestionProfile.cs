@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackEnd.DTO.ExamQuestionsDTO;
+using BackEnd.DTO.QuestionDTO;
 using examedu.DTO.QuestionDTO;
 using ExamEdu.DB.Models;
 
@@ -17,10 +18,40 @@ namespace examedu.DTO.Profiles
             CreateMap<FEQuestion, QuestionResponse>().ForMember(q => q.QuestionId, s => s.MapFrom(s => s.FEQuestionId));
             CreateMap<Answer, AnswerResponse>();
             CreateMap<FEAnswer, AnswerResponse>();
-            CreateMap<Question,QuestionAnswerResponse>();
-            CreateMap<FEQuestion,QuestionAnswerResponse>();
-            CreateMap<Answer,AnswerContentResponse>();
-            CreateMap<FEAnswer,AnswerContentResponse>();
+            CreateMap<Question, QuestionAnswerResponse>();
+            CreateMap<FEQuestion, QuestionAnswerResponse>();
+            CreateMap<Answer, AnswerContentResponse>();
+            CreateMap<FEAnswer, AnswerContentResponse>();
+            CreateMap<RequestAddQuestionInput, AddQuestionRequest>()
+                    .ForMember(dest => dest.Questions, opt =>
+                    {
+                        opt.Condition(src => src.isFinalExam == false);
+                        opt.MapFrom(src => src.Questions);
+                    })
+                    .ForMember(dest => dest.FEQuestions, opt =>
+                    {
+                        opt.Condition(src => src.isFinalExam == true);
+                        opt.MapFrom(src => src.Questions);
+                    });
+            CreateMap<QuestionInput, Question>();
+            CreateMap<QuestionInput, FEQuestion>()
+                    .ForMember(dest => dest.FEAnswers, opt => opt.MapFrom(src => src.Answers));
+            CreateMap<AnswerInput, Answer>();
+            CreateMap<AnswerInput, FEAnswer>();
+            CreateMap<AddQuestionRequest, RequestAddQuestionResponse>()
+                    .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Requester.Fullname))
+                    .ForMember(dest => dest.ModuleName, opt =>
+                         opt.MapFrom(src =>
+                            src.AddQuestionRequestId == src.Questions.Select(q => q.AddQuestionRequestId).FirstOrDefault()
+                            ? src.Questions.Select(q => q.Module.ModuleName).FirstOrDefault() : src.FEQuestions.Select(q => q.Module.ModuleName).FirstOrDefault()
+                    ))
+                    .ForMember(dest => dest.NumberOfQuestion, opt =>
+                           opt.MapFrom(src =>
+                            src.AddQuestionRequestId == src.Questions.Select(q => q.AddQuestionRequestId).FirstOrDefault()
+                            ? src.Questions.Count() : src.FEQuestions.Count())
+                    )
+                    .ForMember(dest => dest.IsAssigned, opt => opt.MapFrom(src => src.ApproverId != null ? true : false));
+
         }
     }
 }

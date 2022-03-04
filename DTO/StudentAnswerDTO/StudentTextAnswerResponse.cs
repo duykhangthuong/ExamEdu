@@ -8,6 +8,7 @@ namespace ExamEdu.DTO.StudentAnswerDTO
     public class StudentTextAnswerResponse
     {
         public int StudentId { get; set; }
+        public int ExamQuestionId { get; set; }
         public string QuestionContent { get; set; }
         public string QuestionImageURL { get; set; }
         public string StudentAnswer { get; set; }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
+using ExamEdu.DTO.MarkDTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace examedu.Services
@@ -215,6 +216,44 @@ namespace examedu.Services
                 }
             }
             int rowAffected = _db.SaveChanges();
+            return rowAffected;
+        }
+        public async Task<int> UpdateStudentMarkByTextAnswer(int studentId, int examId, List<TextAnswerMarkInput> textAnswerMark)
+        {
+            var isFinalExam = _db.Exams.Where(e => e.ExamId == examId).Select(e => e.isFinalExam).FirstOrDefault();
+
+            if (isFinalExam is false)
+            {
+                //Check the input mark is not bigger than question mark
+                foreach (var mark in textAnswerMark)
+                {
+                    var questionMark = await _db.ExamQuestions.Where(eq => eq.ExamQuestionId == mark.ExamQuestionId)
+                                                            .Select(eq => eq.QuestionMark)
+                                                            .FirstOrDefaultAsync();
+                    if (mark.Mark > questionMark)
+                    {
+                        return -1;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var mark in textAnswerMark)
+                {
+                    var questionMark = await _db.Exam_FEQuestions.Where(eq => eq.ExamFEQuestionId == mark.ExamQuestionId)
+                                                            .Select(eq => eq.QuestionMark)
+                                                            .FirstOrDefaultAsync();
+                    if (mark.Mark > questionMark)
+                    {
+                        return -1;
+                    }
+                }
+            }
+            var studentExamInfos = await _db.StudentExamInfos.FirstOrDefaultAsync(sei => sei.ExamId == examId
+                                                                                       && sei.StudentId == studentId);
+            studentExamInfos.Mark += textAnswerMark.Sum(t=>t.Mark);
+            studentExamInfos.NeedToGradeTextQuestion=false;
+            int rowAffected= _db.SaveChanges();
             return rowAffected;
         }
     }

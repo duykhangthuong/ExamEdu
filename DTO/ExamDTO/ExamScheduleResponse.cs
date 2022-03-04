@@ -12,6 +12,7 @@ namespace ExamEdu.DTO.ExamDTO
         public string Description { get; set; }
         public string ModuleCode { get; set; }
         public DateTime ExamDay { get; set; }
+        public string Password { get; set; }
         public int DurationInMinute { get; set; }
     }
 }

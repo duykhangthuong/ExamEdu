@@ -24,31 +24,41 @@ namespace ExamEdu.Services
             _db = db;
         }
 
-        public async Task<Tuple<int, IEnumerable<Module>>> getAllModuleStudentHaveExam(int studentId, PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<ModuleResponse>>> getAllModuleStudentHaveLearn(int studentId, PaginationParameter paginationParameter)
         {
-            //Select all the exam student have attend
-            var allExamOfStudent = await _db.StudentExamInfos.Where(e => e.StudentId == studentId).Select(e => e.ExamId).ToListAsync();
-            if (allExamOfStudent.Count() == 0)
-            {
-                return null;
-            }
-            //Select all module Id in the exam student have attend by joining Exam table and module table
-            var moduleList = await _db.Exams.Join(_db.Modules,
-                                             e => e.ModuleId,
-                                             m => m.ModuleId,
-                                            (e, m) => new
-                                            {
-                                                ExamId = e.ExamId,
-                                                ModuleId = m.ModuleId,
-                                                ModuleName = m.ModuleName
-                                            })
-                                        .Where(e => allExamOfStudent.Contains(e.ExamId))
-                                        .Select(m => new Module
-                                        {
-                                            ModuleId = m.ModuleId,
-                                            ModuleName = m.ModuleName
-                                        })
-                                        .Distinct().ToListAsync();
+            var moduleList = await _db.Class_Module_Students.Join(_db.ClassModules,
+                                                                cms => cms.ClassModuleId,
+                                                                cm => cm.ClassModuleId,
+                                                                (cms, cm) => new
+                                                                {
+                                                                    StudentId = cms.StudentId,
+                                                                    ModuleId = cm.ModuleId,
+                                                                    TeacherId = cm.TeacherId,
+                                                                })
+                                                                .Where(c => c.StudentId == studentId)
+                                                                .Join(_db.Modules,
+                                                                c => c.ModuleId,
+                                                                m => m.ModuleId,
+                                                                (c, m) => new
+                                                                {
+                                                                    ModuleId = m.ModuleId,
+                                                                    ModuleCode = m.ModuleCode,
+                                                                    ModuleName = m.ModuleName,
+                                                                    TeacherId = c.TeacherId
+                                                                })
+                                                                .Join(_db.Teachers,
+                                                                 c => c.TeacherId,
+                                                                 t => t.TeacherId,
+                                                                 (c, t) => new ModuleResponse
+                                                                 {
+                                                                     ModuleId = c.ModuleId,
+                                                                     ModuleCode = c.ModuleCode,
+                                                                     ModuleName = c.ModuleName,
+                                                                     TeacherEmail = t.Email
+                                                                 })
+                                                                    .ToListAsync();
+
+
             return Tuple.Create(moduleList.Count, moduleList.GetPage(paginationParameter));
 
         }
@@ -145,6 +155,21 @@ namespace ExamEdu.Services
             var modules = await result.ToListAsync();
 
             return Tuple.Create(modules.Count, modules.GetPage(paginationParameter));
+        }
+
+        public bool IsModuleExist(int moduleId)
+        {
+            return _db.Modules.Any(m => m.ModuleId == moduleId);
+        }
+
+        /// <summary>
+        /// Get all of the module ids of modules teacher teaches
+        /// </summary>
+        /// <param name="teacherId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<int>> GetAllModuleIdByTeacherId(int teacherId)
+        {
+            return await _db.ClassModules.Where(t => t.TeacherId == teacherId).Select(m => m.ModuleId).ToListAsync();
         }
 
         public async Task<Tuple<int, IEnumerable<Module>>> getModulesByTeacherId(int teacherId, PaginationParameter paginationParameter)

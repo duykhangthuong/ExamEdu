@@ -20,5 +20,10 @@ namespace examedu.Services
         {
             return await _db.Levels.Where(l => l.LevelId == id).FirstOrDefaultAsync();
         }
+
+        public bool IsLevelExist(int levelId)
+        {
+            return _db.Levels.Any(l => l.LevelId == levelId);
+        }
     }
 }

@@ -85,9 +85,11 @@ namespace ExamEdu.Services
                                                        QuestionContent = q.QuestionContent,
                                                        QuestionImageURL = q.QuestionImageURL
                                                    }).Where(s => s.QuestionTypeID == 2)
+                                                   .OrderBy(s=>s.ExamQuestionID)
                                                    .Select(sa => new StudentTextAnswerResponse
                                                    {
                                                        StudentId = sa.StudentId,
+                                                       ExamQuestionId=sa.ExamQuestionID,
                                                        QuestionContent = sa.QuestionContent,
                                                        QuestionImageURL = sa.QuestionImageURL,
                                                        StudentAnswer = sa.StudentAnswer,
@@ -128,13 +130,16 @@ namespace ExamEdu.Services
                                                      QuestionContent = q.QuestionContent,
                                                      QuestionImageURL = q.QuestionImageURL
                                                  }).Where(s => s.QuestionTypeID == 2)
+                                                    .OrderBy(s=>s.ExamQuestionID)
                                                     .Select(sa => new StudentTextAnswerResponse
                                                     {
                                                         StudentId = sa.StudentId,
+                                                        ExamQuestionId=sa.ExamQuestionID,
                                                         QuestionContent = sa.QuestionContent,
                                                         QuestionImageURL = sa.QuestionImageURL,
                                                         StudentAnswer = sa.StudentAnswer,
                                                         QuestionMark = sa.QuestionMark
+
                                                     })
                                                     .ToListAsync();
             if (studentTextAnswersList.Count() == 0 || studentTextAnswersList == null)

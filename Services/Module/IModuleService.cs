@@ -10,7 +10,7 @@ namespace ExamEdu.Services
 {
     public interface IModuleService
     {
-        Task<Tuple<int, IEnumerable<Module>>> getAllModuleStudentHaveExam(int studentId, PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<ModuleResponse>>> getAllModuleStudentHaveLearn(int studentId, PaginationParameter paginationParameter);
         Task<Module> getModuleByID(int id);
         Task<Module> getModuleByCode(string code);
         Task<Tuple<int, IEnumerable<Module>>> getModules(PaginationParameter paginationParameter);
@@ -19,5 +19,7 @@ namespace ExamEdu.Services
         Task<int> InsertNewModule(ModuleInput moduleInput);
         Task<int> UpdateModule(ModuleInput moduleInput);
         Task<int> DeleteModule(int id);
+        bool IsModuleExist(int moduleId);
+        Task<IEnumerable<int>> GetAllModuleIdByTeacherId(int teacherId);
     }
 }

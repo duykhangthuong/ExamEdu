@@ -6,6 +6,7 @@ namespace examedu.DTO.StudentDTO
     {
         public int StudentId { get; set; }
         public string StudentName { get; set; }
+        public string StudentEmail { get; set; }
         public DateTime? FinishedAt { get; set; }
         public float? Mark { get; set; }
         public bool NeedToGradeTextQuestion { get; set; }

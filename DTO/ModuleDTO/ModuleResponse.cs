@@ -10,5 +10,6 @@ namespace ExamEdu.DTO.ModuleDTO
         public int ModuleId { get; set; }
         public string ModuleCode { get; set; }
         public string ModuleName { get; set; }
+        public string TeacherEmail { get; set; }
     }
 }

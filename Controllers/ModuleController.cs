@@ -40,15 +40,15 @@ namespace ExamEdu.Controllers
             {
                 return NotFound(new ResponseDTO(404, "Student not found"));
             }
-            (int totalRecord, IEnumerable<Module> modules) =
-                            await _moduleService.getAllModuleStudentHaveExam(studentId, paginationParameter);
+            (int totalRecord, IEnumerable<ModuleResponse> modules) =
+                            await _moduleService.getAllModuleStudentHaveLearn(studentId, paginationParameter);
             if (totalRecord == 0)
             {
-                return NotFound(new ResponseDTO(404, "Student doesn't have exam on any module"));
+                return NotFound(new ResponseDTO(404, "Student doesn't study any module"));
             }
-            IEnumerable<ModuleResponse> modulesResponses = _mapper.Map<IEnumerable<ModuleResponse>>(modules);
+            // IEnumerable<ModuleResponse> modulesResponses = _mapper.Map<IEnumerable<ModuleResponse>>(modules);
 
-            return Ok(new PaginationResponse<IEnumerable<ModuleResponse>>(totalRecord, modulesResponses));
+            return Ok(new PaginationResponse<IEnumerable<ModuleResponse>>(totalRecord, modules));
         }
 
 
