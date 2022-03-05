@@ -99,7 +99,7 @@ namespace examedu.Controllers
             }
             if (result == 0)
             {
-                return BadRequest(new ResponseDTO(409, "Deactivate faile"));
+                return BadRequest(new ResponseDTO(400, "Deactivate failed"));
             }
             return Ok(new ResponseDTO(200, "Deleted!"));
         }

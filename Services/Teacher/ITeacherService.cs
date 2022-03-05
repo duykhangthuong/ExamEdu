@@ -10,5 +10,6 @@ namespace BackEnd.Services
     {
         Task<Teacher> GetTeacherByEmail(string email);
         Task<bool> IsTeacherExist(int id);
+        Task<Dictionary<int, string>> GetAllTeacherIdAndName();
     }
 }

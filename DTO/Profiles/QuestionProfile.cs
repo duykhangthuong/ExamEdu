@@ -40,14 +40,14 @@ namespace examedu.DTO.Profiles
             CreateMap<AnswerInput, FEAnswer>();
             CreateMap<AddQuestionRequest, RequestAddQuestionResponse>()
                     .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Requester.Fullname))
-                    .ForMember(dest => dest.ModuleName, opt =>
-                         opt.MapFrom(src =>
-                            src.AddQuestionRequestId == src.Questions.Select(q => q.AddQuestionRequestId).FirstOrDefault()
-                            ? src.Questions.Select(q => q.Module.ModuleName).FirstOrDefault() : src.FEQuestions.Select(q => q.Module.ModuleName).FirstOrDefault()
-                    ))
+                    // .ForMember(dest => dest.ModuleName, opt =>
+                    //      opt.MapFrom(src =>
+                    //         src.Questions.Where(q=>q.AddQuestionRequestId==src.AddQuestionRequestId).FirstOrDefault()!=null
+                    //          src.Questions.Select(q => q.Module.ModuleName).First() : src.FEQuestions.Select(q => q.Module.ModuleName).First()
+                    // ))
                     .ForMember(dest => dest.NumberOfQuestion, opt =>
                            opt.MapFrom(src =>
-                            src.AddQuestionRequestId == src.Questions.Select(q => q.AddQuestionRequestId).FirstOrDefault()
+                            src.Questions.Where(q=>q.AddQuestionRequestId==src.AddQuestionRequestId).FirstOrDefault()!=null
                             ? src.Questions.Count() : src.FEQuestions.Count())
                     )
                     .ForMember(dest => dest.IsAssigned, opt => opt.MapFrom(src => src.ApproverId != null ? true : false));

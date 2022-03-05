@@ -129,7 +129,7 @@ namespace ExamEdu.Controllers
 
             if (!isModuleExist)
             {
-                return BadRequest(new ResponseDTO(404, "Module not found"));
+                return NotFound(new ResponseDTO(404, "Module not found"));
             }
 
             int result = await _moduleService.UpdateModule(moduleInput);
@@ -154,7 +154,7 @@ namespace ExamEdu.Controllers
 
             if (!isModuleExist)
             {
-                return BadRequest(new ResponseDTO(404, "Module not found"));
+                return NotFound(new ResponseDTO(404, "Module not found"));
             }
 
             int result = await _moduleService.DeleteModule(id);

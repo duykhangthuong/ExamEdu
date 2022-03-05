@@ -30,5 +30,20 @@ namespace BackEnd.Services
         {
             return await _dataContext.Teachers.Where(s => s.TeacherId == id && s.DeactivatedAt == null).AnyAsync();
         }
+
+        /// <summary>
+        /// Get ID and name of all teacher in database
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Dictionary<int, string>> GetAllTeacherIdAndName()
+        {
+            Dictionary<int, string> teacherDict = new Dictionary<int, string>();
+            var teachers = await _dataContext.Teachers.Where(t => t.DeactivatedAt == null).Select(t => new { t.TeacherId, t.Fullname }).ToListAsync();
+            foreach (var teacher in teachers)
+            {
+                teacherDict.Add(teacher.TeacherId, teacher.Fullname);
+            }
+            return teacherDict;
+        }
     }
 }

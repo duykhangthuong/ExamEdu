@@ -94,7 +94,7 @@ namespace examedu.Controllers
             int rs = await _questionService.InsertNewRequestAddQuestions(addQuestionRequest);
             if (rs == 0)
             {
-                return BadRequest(new ResponseDTO(409, "Failed to send request"));
+                return BadRequest(new ResponseDTO(400, "Failed to send request"));
             }
 
             return Ok(new ResponseDTO(200, "Request add questions success."));
@@ -116,13 +116,50 @@ namespace examedu.Controllers
                 if (_questionService.IsFinalExamBank(request.AddQuestionRequestId))
                 {
                     request.IsFinalExamBank = true;
+                    if (await _questionService.GetModuleName(request.AddQuestionRequestId, true) == null)
+                    {
+                        continue;
+                    }
+                    request.ModuleName = await _questionService.GetModuleName(request.AddQuestionRequestId, true);
                 }
                 else
                 {
                     request.IsFinalExamBank = false;
+                    if (await _questionService.GetModuleName(request.AddQuestionRequestId, false) == null)
+                    {
+                        continue;
+                    }
+                    request.ModuleName = await _questionService.GetModuleName(request.AddQuestionRequestId, false);
                 }
             }
             return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionResponse>>(totalRecord, requestResponse));
+        }
+
+        [HttpPut("assignTeacher")]
+        public async Task<IActionResult> AssignTeacherToApproveRequest(int addQuestionRequestId, int teacherId)
+        {
+            if (await _teacherService.IsTeacherExist(teacherId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Teacher is not exist"));
+            }
+
+            int rs = await _questionService.AssignTeacherToApproveRequest(addQuestionRequestId, teacherId);
+            if (rs == -1)
+            {
+                return Conflict(new ResponseDTO(409, "Request has already assigned"));
+            }
+            if (rs == -2)
+            {
+                return NotFound(new ResponseDTO(404, "Request is not exist"));
+            }
+            else if (rs == 0)
+            {
+                return BadRequest(new ResponseDTO(400, "Failed to send request"));
+            }
+            else
+            {
+                return Ok(new ResponseDTO(200, "Assign teacher success"));
+            }
         }
     }
 }

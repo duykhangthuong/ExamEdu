@@ -114,6 +114,11 @@ namespace examedu.Services
             return questionAnswerList;
         }
 
+        /// <summary>
+        /// Create new request to add questions to bank
+        /// </summary>
+        /// <param name="addQuestionRequest"></param>
+        /// <returns>Row inserted</returns>
         public async Task<int> InsertNewRequestAddQuestions(AddQuestionRequest addQuestionRequest)
         {
             using (var dbContextTransaction = _dataContext.Database.BeginTransaction())
@@ -134,6 +139,11 @@ namespace examedu.Services
             }
         }
 
+        /// <summary>
+        /// Get all the requests to add quesions to bank with pagination
+        /// </summary>
+        /// <param name="paginationParameter"></param>
+        /// <returns></returns>
         public async Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionBank(PaginationParameter paginationParameter)
         {
             IQueryable<AddQuestionRequest> requests = _dataContext.AddQuestionRequests;
@@ -155,7 +165,7 @@ namespace examedu.Services
                                                     },
                                                     CreatedAt = r.CreatedAt,
                                                     Description = r.Description,
-                                                    Questions = r.Questions,
+                                                    Questions = r.Questions.ToList(),
                                                     FEQuestions = r.FEQuestions.ToList(),
                                                     ApproverId = r.ApproverId,
                                                 })
@@ -165,13 +175,65 @@ namespace examedu.Services
             return Tuple.Create(totalRecord, requestList);
         }
 
+        /// <summary>
+        /// Check whether the bank is final
+        /// </summary>
+        /// <param name="addQuestionRequestId"></param>
+        /// <returns></returns>
         public bool IsFinalExamBank(int addQuestionRequestId)
         {
-            if (_dataContext.FEQuestions.Where(q => q.AddQuestionRequestId == addQuestionRequestId).First() != null)
+            if (_dataContext.FEQuestions.Where(q => q.AddQuestionRequestId == addQuestionRequestId).FirstOrDefault() != null)
             {
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Get a module's name by addQuestionRequestId
+        /// </summary>
+        /// <param name="addQuestionRequestId"></param>
+        /// <param name="isFinalExam">To check for getting the module's name in fe bank or pt bank</param>
+        /// <returns></returns>
+        public async Task<string> GetModuleName(int addQuestionRequestId, bool isFinalExam)
+        {
+            string moduleName;
+            if (isFinalExam)
+            {
+                moduleName = await _dataContext.FEQuestions.Where(q => q.AddQuestionRequestId == addQuestionRequestId && q.Module.ModuleName != null).Select(q => q.Module.ModuleName).FirstOrDefaultAsync();
+            }
+            else
+            {
+                moduleName = await _dataContext.Questions.Where(q => q.AddQuestionRequestId == addQuestionRequestId && q.Module.ModuleName != null).Select(q => q.Module.ModuleName).FirstOrDefaultAsync();
+            }
+            return moduleName;
+        }
+
+        /// <summary>
+        /// Assign a teacher to approve the request add questions to bank
+        /// </summary>
+        /// <param name="addQuestionRequestId"></param>
+        /// <param name="teacherId"></param>
+        /// <returns></returns>
+        public async Task<int> AssignTeacherToApproveRequest(int addQuestionRequestId, int teacherId)
+        {
+            int rowInserted = 0;
+            var addQuestionRequest = await _dataContext.AddQuestionRequests.Where(s => s.AddQuestionRequestId == addQuestionRequestId).FirstOrDefaultAsync();
+            if (addQuestionRequest != null)
+            {
+                if (addQuestionRequest.ApproverId != null)
+                {
+                    return -1;
+                }
+                addQuestionRequest.ApproverId = teacherId;
+            }
+            else
+            {
+                return -2;
+            }
+            _dataContext.AddQuestionRequests.Update(addQuestionRequest);
+            rowInserted = await _dataContext.SaveChangesAsync();
+            return rowInserted;
         }
     }
 }

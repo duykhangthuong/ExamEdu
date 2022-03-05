@@ -157,6 +157,11 @@ namespace ExamEdu.Services
             return Tuple.Create(modules.Count, modules.GetPage(paginationParameter));
         }
 
+        /// <summary>
+        /// Check whether a module exist
+        /// </summary>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
         public bool IsModuleExist(int moduleId)
         {
             return _db.Modules.Any(m => m.ModuleId == moduleId);
