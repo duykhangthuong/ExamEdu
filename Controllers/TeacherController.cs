@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using ExamEdu.DTO.ClassModuleDTO;
-
+using BackEnd.DTO.TeacherDTO;
 
 namespace ExamEdu.Controllers
 {
@@ -49,9 +49,24 @@ namespace ExamEdu.Controllers
         }
 
         [HttpGet("idName")]
-        public async Task<ActionResult<Dictionary<int,string>>> GetAllTeacherIdAndName()
+        public async Task<ActionResult<IEnumerable<TeacherResponse>>> GetAllTeacherIdAndName()
         {
-            return Ok(await _teacherService.GetAllTeacherIdAndName());
+            var teachers = await _teacherService.GetAllTeacherIdAndName();
+            var teachersResponse = _mapper.Map<IEnumerable<TeacherResponse>>(teachers);
+            return Ok(teachersResponse);
+        }
+
+        //http get teacherId parameter
+        [HttpGet("check/{teacherId:int}")]
+        //return 200 status code if teacher is IsHeadOfDepartment
+        public async Task<ActionResult<bool>> IsHeadOfDepartment(int teacherId)
+        {
+            
+            if (await _teacherService.IsTeacherExist(teacherId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Teacher Not Found"));
+            }
+            return Ok(await _teacherService.IsHeadOfDepartment(teacherId));
         }
     }
 }

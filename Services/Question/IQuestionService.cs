@@ -17,7 +17,11 @@ namespace examedu.Services
         Task<int> InsertNewRequestAddQuestions(AddQuestionRequest addQuestionRequest);
         Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionBank(PaginationParameter paginationParameter);
         bool IsFinalExamBank(int addQuestionRequestId);
-        Task<string> GetModuleName(int addQuestionRequestId, bool isFinalExam);
+        Task<string> GetModuleNameByAddQuestionRequestId(int addQuestionRequestId, bool isFinalExam);
         Task<int> AssignTeacherToApproveRequest(int addQuestionRequestId, int teacherId);
+        Task<bool> IsRequestExist(int addQuestionRequestId);
+        Task<AddQuestionRequest> GetRequestAddQuestionBankDetail(int addQuestionRequestId);
+        Task<int> ApproveQuestion(QuestionToApproveInput input);
+        Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionByApproverId(int approverId, PaginationParameter paginationParameter);
     }
 }

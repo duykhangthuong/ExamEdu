@@ -195,7 +195,7 @@ namespace examedu.Services
         /// <param name="addQuestionRequestId"></param>
         /// <param name="isFinalExam">To check for getting the module's name in fe bank or pt bank</param>
         /// <returns></returns>
-        public async Task<string> GetModuleName(int addQuestionRequestId, bool isFinalExam)
+        public async Task<string> GetModuleNameByAddQuestionRequestId(int addQuestionRequestId, bool isFinalExam)
         {
             string moduleName;
             if (isFinalExam)
@@ -235,5 +235,125 @@ namespace examedu.Services
             rowInserted = await _dataContext.SaveChangesAsync();
             return rowInserted;
         }
+
+        public async Task<bool> IsRequestExist(int addQuestionRequestId)
+        {
+            return await _dataContext.AddQuestionRequests.Where(s => s.AddQuestionRequestId == addQuestionRequestId).AnyAsync();
+        }
+
+        public async Task<AddQuestionRequest> GetRequestAddQuestionBankDetail(int addQuestionRequestId)
+        {
+            var request = await _dataContext.AddQuestionRequests
+                                        .Where(r => r.AddQuestionRequestId == addQuestionRequestId)
+                                        .Select(r => new AddQuestionRequest
+                                        {
+                                            AddQuestionRequestId = r.AddQuestionRequestId,
+                                            Questions = r.Questions.Select(q => new Question
+                                            {
+                                                QuestionId = q.QuestionId,
+                                                QuestionContent = q.QuestionContent,
+                                                QuestionImageURL = q.QuestionImageURL,
+                                                Module = new Module
+                                                {
+                                                    ModuleName = q.Module.ModuleName
+                                                },
+                                                Level = new Level
+                                                {
+                                                    LevelName = q.Level.LevelName
+                                                },
+                                                Answers = q.Answers.ToList()
+                                            }).ToList(),
+                                            FEQuestions = r.FEQuestions.Select(q => new FEQuestion
+                                            {
+                                                FEQuestionId = q.FEQuestionId,
+                                                QuestionContent = q.QuestionContent,
+                                                QuestionImageURL = q.QuestionImageURL,
+                                                Module = new Module
+                                                {
+                                                    ModuleName = q.Module.ModuleName
+                                                },
+                                                Level = new Level
+                                                {
+                                                    LevelName = q.Level.LevelName
+                                                },
+                                                FEAnswers = q.FEAnswers.ToList()
+                                            }).ToList()
+                                        })
+                                        .FirstOrDefaultAsync();
+            return request;
+        }
+
+        public async Task<int> ApproveQuestion(QuestionToApproveInput input)
+        {
+            int rowInserted = 0;
+            if (input.IsFinalExamBank)
+            {
+                var feQuestion = await _dataContext.FEQuestions.Where(q => q.FEQuestionId == input.QuestionId && q.ApproveAt == null).FirstOrDefaultAsync();
+                if (feQuestion != null)
+                {
+                    feQuestion.isApproved = input.isApproved;
+                    if (input.isApproved == true) { feQuestion.ApproveAt = DateTime.Now; }
+                    // feQuestion.Comment=input.Comment;
+                    _dataContext.FEQuestions.Update(feQuestion);
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            else
+            {
+                var question = await _dataContext.Questions.Where(q => q.QuestionId == input.QuestionId && q.ApproveAt == null).FirstOrDefaultAsync();
+                if (question != null)
+                {
+                    question.isApproved = input.isApproved;
+                    if (input.isApproved == true) { question.ApproveAt = DateTime.Now; }
+                    question.Comment = input.Comment;
+                    _dataContext.Questions.Update(question);
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            rowInserted = await _dataContext.SaveChangesAsync();
+            return rowInserted;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="paginationParameter"></param>
+        /// <returns></returns>
+        public async Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionByApproverId(int approverId, PaginationParameter paginationParameter)
+        {
+            IQueryable<AddQuestionRequest> requests = _dataContext.AddQuestionRequests.Where(r=>r.ApproverId==approverId);
+            if (paginationParameter.SearchName != "")
+            {
+                requests = requests.Where(r => EF.Functions.ToTsVector("simple", EF.Functions.Unaccent(r.Requester.Fullname.ToLower()))
+                      .Matches(EF.Functions.ToTsQuery("simple", EF.Functions.Unaccent(paginationParameter.SearchName.ToLower()))));
+            }
+
+            IEnumerable<AddQuestionRequest> requestList = await requests
+                                                .GetCount(out var totalRecord)
+                                                .GetPage(paginationParameter)
+                                                .Select(r => new AddQuestionRequest
+                                                {
+                                                    AddQuestionRequestId = r.AddQuestionRequestId,
+                                                    Requester = new Teacher
+                                                    {
+                                                        Fullname = r.Requester.Fullname
+                                                    },
+                                                    CreatedAt = r.CreatedAt,
+                                                    Description = r.Description,
+                                                    Questions = r.Questions.ToList(),
+                                                    FEQuestions = r.FEQuestions.ToList()
+                                                })
+                                                .OrderByDescending(r => r.CreatedAt)
+                                                .ToListAsync();
+
+            return Tuple.Create(totalRecord, requestList);
+        }
+
     }
 }

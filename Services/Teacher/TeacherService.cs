@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BackEnd.DTO.TeacherDTO;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
 using Microsoft.EntityFrameworkCore;
@@ -35,15 +36,14 @@ namespace BackEnd.Services
         /// Get ID and name of all teacher in database
         /// </summary>
         /// <returns></returns>
-        public async Task<Dictionary<int, string>> GetAllTeacherIdAndName()
+        public async Task<IEnumerable<Teacher>> GetAllTeacherIdAndName()
         {
-            Dictionary<int, string> teacherDict = new Dictionary<int, string>();
-            var teachers = await _dataContext.Teachers.Where(t => t.DeactivatedAt == null).Select(t => new { t.TeacherId, t.Fullname }).ToListAsync();
-            foreach (var teacher in teachers)
-            {
-                teacherDict.Add(teacher.TeacherId, teacher.Fullname);
-            }
-            return teacherDict;
+            return await _dataContext.Teachers.Where(t => t.DeactivatedAt == null).Select(t => new Teacher { TeacherId = t.TeacherId, Fullname = t.Fullname }).ToListAsync();
+        }
+
+        public async Task<bool> IsHeadOfDepartment(int teacherId)
+        {
+            return await _dataContext.Teachers.Where(t => t.TeacherId == teacherId && t.DeactivatedAt == null).Select(t => t.isHeadOfDepartment).FirstOrDefaultAsync();
         }
     }
 }

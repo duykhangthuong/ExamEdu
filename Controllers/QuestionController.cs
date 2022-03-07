@@ -77,12 +77,9 @@ namespace examedu.Controllers
             }
 
             IEnumerable<int> moduleIds = await _moduleService.GetAllModuleIdByTeacherId(input.RequesterId);
-            foreach (var moduleId in moduleIds)
+            if (moduleIds.AsQueryable().Any(id => id == input.Questions.First().ModuleId) == false)
             {
-                if (moduleId != input.Questions.First().ModuleId)
-                {
-                    return NotFound(new ResponseDTO(404, "Requester not teach this module"));
-                }
+                return NotFound(new ResponseDTO(404, "Requester not teach this module"));
             }
 
             if (_levelService.IsLevelExist(input.Questions.First().LevelId) == false)
@@ -101,8 +98,13 @@ namespace examedu.Controllers
         }
 
         [HttpGet("requestList")]
-        public async Task<ActionResult<PaginationResponse<IEnumerable<RequestAddQuestionResponse>>>> ViewAllRequestAddQuestionBank([FromQuery] PaginationParameter paginationParameter)
+        public async Task<ActionResult<PaginationResponse<IEnumerable<RequestAddQuestionResponse>>>> ViewAllRequestAddQuestionBank([FromQuery] int id, [FromQuery] PaginationParameter paginationParameter)
         {
+            if (await _teacherService.IsHeadOfDepartment(id) == false)
+            {
+                return StatusCode(403, new ResponseDTO(403));
+            }
+
             (int totalRecord, IEnumerable<AddQuestionRequest> requestList) = await _questionService.GetAllRequestAddQuestionBank(paginationParameter);
 
             if (totalRecord == 0)
@@ -116,28 +118,33 @@ namespace examedu.Controllers
                 if (_questionService.IsFinalExamBank(request.AddQuestionRequestId))
                 {
                     request.IsFinalExamBank = true;
-                    if (await _questionService.GetModuleName(request.AddQuestionRequestId, true) == null)
+                    if (await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, true) == null)
                     {
                         continue;
                     }
-                    request.ModuleName = await _questionService.GetModuleName(request.AddQuestionRequestId, true);
+                    request.ModuleName = await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, true);
                 }
                 else
                 {
                     request.IsFinalExamBank = false;
-                    if (await _questionService.GetModuleName(request.AddQuestionRequestId, false) == null)
+                    if (await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, false) == null)
                     {
                         continue;
                     }
-                    request.ModuleName = await _questionService.GetModuleName(request.AddQuestionRequestId, false);
+                    request.ModuleName = await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, false);
                 }
             }
             return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionResponse>>(totalRecord, requestResponse));
         }
 
         [HttpPut("assignTeacher")]
-        public async Task<IActionResult> AssignTeacherToApproveRequest(int addQuestionRequestId, int teacherId)
+        public async Task<IActionResult> AssignTeacherToApproveRequest([FromQuery] int id, int addQuestionRequestId, int teacherId)
         {
+            if (await _teacherService.IsHeadOfDepartment(id) == false)
+            {
+                return StatusCode(403, new ResponseDTO(403));
+            }
+
             if (await _teacherService.IsTeacherExist(teacherId) == false)
             {
                 return NotFound(new ResponseDTO(404, "Teacher is not exist"));
@@ -160,6 +167,88 @@ namespace examedu.Controllers
             {
                 return Ok(new ResponseDTO(200, "Assign teacher success"));
             }
+        }
+
+        [HttpGet("request/{addQuestionRequestId:int}")]
+        public async Task<ActionResult<RequestAddQuestionDetailResponse>> ViewRequestAddQuestionDetail(int addQuestionRequestId)
+        {
+            if (await _questionService.IsRequestExist(addQuestionRequestId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Request is not exist"));
+            }
+
+            AddQuestionRequest request = await _questionService.GetRequestAddQuestionBankDetail(addQuestionRequestId);
+            var requestResponse = _mapper.Map<RequestAddQuestionDetailResponse>(request);
+
+            if (_questionService.IsFinalExamBank(addQuestionRequestId))
+            {
+                requestResponse.IsFinalExamBank = true;
+            }
+            else
+            {
+                requestResponse.IsFinalExamBank = false;
+            }
+
+            return Ok(requestResponse);
+        }
+
+        [HttpPut("approveRequest")]
+        public async Task<IActionResult> ApproveRequestAddQuestion([FromBody] IEnumerable<QuestionToApproveInput> inputList)
+        {
+            int rs = 0;
+            foreach (var input in inputList)
+            {
+                rs = await _questionService.ApproveQuestion(input);
+                if (rs == -1)
+                {
+                    return NotFound(new ResponseDTO(404, "Question is not exist or has been approved"));
+                }
+                else if (rs == 0)
+                {
+                    return BadRequest(new ResponseDTO(400, "Failed to send request"));
+                }
+            }
+            return Ok(new ResponseDTO(200, "Approve request success"));
+        }
+
+        [HttpGet("requestList/{approverId:int}")]
+        public async Task<ActionResult<PaginationResponse<IEnumerable<RequestAddQuestionResponse>>>> ViewAllRequestAddQuestionBankByApproverId(int approverId, [FromQuery] PaginationParameter paginationParameter)
+        {
+            if (await _teacherService.IsTeacherExist(approverId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Approver is not exist"));
+            }
+
+            (int totalRecord, IEnumerable<AddQuestionRequest> requestList) = await _questionService.GetAllRequestAddQuestionByApproverId(approverId, paginationParameter);
+
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "Request list cannot be found"));
+            }
+
+            var requestResponse = _mapper.Map<IEnumerable<RequestAddQuestionResponse>>(requestList);
+            foreach (var request in requestResponse)
+            {
+                if (_questionService.IsFinalExamBank(request.AddQuestionRequestId))
+                {
+                    request.IsFinalExamBank = true;
+                    if (await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, true) == null)
+                    {
+                        continue;
+                    }
+                    request.ModuleName = await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, true);
+                }
+                else
+                {
+                    request.IsFinalExamBank = false;
+                    if (await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, false) == null)
+                    {
+                        continue;
+                    }
+                    request.ModuleName = await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, false);
+                }
+            }
+            return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionResponse>>(totalRecord, requestResponse));
         }
     }
 }
