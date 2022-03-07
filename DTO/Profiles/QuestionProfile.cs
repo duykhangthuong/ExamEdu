@@ -46,9 +46,11 @@ namespace examedu.DTO.Profiles
                             ? src.Questions.Count() : src.FEQuestions.Count())
                     )
                     .ForMember(dest => dest.IsAssigned, opt => opt.MapFrom(src => src.ApproverId != null ? true : false));
-           
-            CreateMap<Question, QuestionInRequestResponse>();
+
+            CreateMap<Question, QuestionInRequestResponse>()
+                    .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level.LevelName));
             CreateMap<FEQuestion, QuestionInRequestResponse>()
+                    .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level.LevelName))
                     .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.FEQuestionId))
                     .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.FEAnswers));
             CreateMap<Answer, AnswerResponse>();
@@ -68,20 +70,20 @@ namespace examedu.DTO.Profiles
                         }
                        )
                     )
-                    .ForMember(dest => dest.LevelName, opt =>
-                       opt.MapFrom((src, dest) =>
-                        {
-                            if (dest.IsFinalExamBank == true)
-                            {
-                                return src.FEQuestions.Select(q => q.Level.LevelName).FirstOrDefault();
-                            }
-                            else
-                            {
-                                return src.Questions.Select(q => q.Level.LevelName).FirstOrDefault();
-                            }
-                        }
-                       )
-                    )
+                    // .ForMember(dest => dest.LevelName, opt =>
+                    //    opt.MapFrom((src, dest) =>
+                    //     {
+                    //         if (dest.IsFinalExamBank == true)
+                    //         {
+                    //             return src.FEQuestions.Select(q => q.Level.LevelName).FirstOrDefault();
+                    //         }
+                    //         else
+                    //         {
+                    //             return src.Questions.Select(q => q.Level.LevelName).FirstOrDefault();
+                    //         }
+                    //     }
+                    //    )
+                    // )
                     .ForMember(dest => dest.Questions, opt =>
                         opt.MapFrom((src, dest) =>
                         {

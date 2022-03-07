@@ -10,7 +10,6 @@ namespace BackEnd.DTO.QuestionDTO
         public int AddQuestionRequestId { get; set; }
         public string ModuleName { get; set; }
         public bool IsFinalExamBank { get; set; }
-        public string LevelName { get; set; }
         public ICollection<QuestionInRequestResponse> Questions { get; set; }
     }
 }

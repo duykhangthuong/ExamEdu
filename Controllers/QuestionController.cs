@@ -82,9 +82,12 @@ namespace examedu.Controllers
                 return NotFound(new ResponseDTO(404, "Requester not teach this module"));
             }
 
-            if (_levelService.IsLevelExist(input.Questions.First().LevelId) == false)
+            foreach (var levelId in input.Questions.Select(q => q.LevelId).ToList())
             {
-                return NotFound(new ResponseDTO(404, "Level is not exist"));
+                if (_levelService.IsLevelExist(levelId) == false)
+                {
+                    return NotFound(new ResponseDTO(404, "Level is not exist"));
+                }
             }
 
             AddQuestionRequest addQuestionRequest = _mapper.Map<AddQuestionRequest>(input);

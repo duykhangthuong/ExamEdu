@@ -11,6 +11,7 @@ namespace BackEnd.DTO.QuestionDTO
         public int QuestionId { get; set; }
         public string QuestionContent { get; set; }
         public string QuestionImageURL { get; set; }
+        public string LevelName { get; set; }
         public List<AnswerResponse> Answers { get; set; }
     }
 }
