@@ -38,7 +38,8 @@ namespace examedu.Services
                 return null;
             }
 
-            List<StudentExamInfo> studentExamInforList = await _dataContext.StudentExamInfos.Where(s => s.StudentId == studentID).ToListAsync();
+            List<StudentExamInfo> studentExamInforList = await _dataContext.StudentExamInfos.Where(s => s.StudentId == studentID 
+            && s.FinishAt != null).ToListAsync();
             if (studentExamInforList == null)
             {
                 return listToRetrun;
