@@ -190,8 +190,7 @@ namespace ExamEdu.Services
         public async Task<Tuple<int, IEnumerable<Module>>> getModulesByTeacherId(int teacherId, PaginationParameter paginationParameter)
         {
             var queryResult = from m in _db.Modules
-                              join cm in _db.ClassModules on m.ModuleId equals cm.ModuleId
-                              where cm.TeacherId == teacherId
+                              where m.ClassModules.Any(cm => cm.TeacherId == teacherId)
                               select new Module
                               {
                                   ModuleId = m.ModuleId,
