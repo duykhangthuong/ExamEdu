@@ -215,7 +215,7 @@ namespace examedu.Controllers
         }
 
         [HttpGet("requestList/{approverId:int}")]
-        public async Task<ActionResult<PaginationResponse<IEnumerable<RequestAddQuestionResponse>>>> ViewAllRequestAddQuestionBankByApproverId(int approverId, [FromQuery] PaginationParameter paginationParameter)
+        public async Task<ActionResult<PaginationResponse<IEnumerable<RequestAddQuestionListByApproverResponse>>>> ViewAllRequestAddQuestionBankByApproverId(int approverId, [FromQuery] PaginationParameter paginationParameter)
         {
             if (await _teacherService.IsTeacherExist(approverId) == false)
             {
@@ -229,7 +229,7 @@ namespace examedu.Controllers
                 return NotFound(new ResponseDTO(404, "Request list cannot be found"));
             }
 
-            var requestResponse = _mapper.Map<IEnumerable<RequestAddQuestionResponse>>(requestList);
+            var requestResponse = _mapper.Map<IEnumerable<RequestAddQuestionListByApproverResponse>>(requestList);
             foreach (var request in requestResponse)
             {
                 if (_questionService.IsFinalExamBank(request.AddQuestionRequestId))
@@ -251,7 +251,7 @@ namespace examedu.Controllers
                     request.ModuleName = await _questionService.GetModuleNameByAddQuestionRequestId(request.AddQuestionRequestId, false);
                 }
             }
-            return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionResponse>>(totalRecord, requestResponse));
+            return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionListByApproverResponse>>(totalRecord, requestResponse));
         }
     }
 }

@@ -46,6 +46,41 @@ namespace examedu.DTO.Profiles
                             ? src.Questions.Count() : src.FEQuestions.Count())
                     )
                     .ForMember(dest => dest.IsAssigned, opt => opt.MapFrom(src => src.ApproverId != null ? true : false));
+            CreateMap<AddQuestionRequest, RequestAddQuestionListByApproverResponse>()
+                    .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Requester.Fullname))
+                    .ForMember(dest => dest.NumberOfQuestion, opt =>
+                           opt.MapFrom(src =>
+                            src.Questions.Where(q => q.AddQuestionRequestId == src.AddQuestionRequestId).FirstOrDefault() != null
+                            ? src.Questions.Count() : src.FEQuestions.Count())
+                    )
+                    .ForMember(dest => dest.IsApproved, opt =>
+                           opt.MapFrom((src, dest) =>
+                           {
+                               if (src.FEQuestions.Where(q => q.AddQuestionRequestId == src.AddQuestionRequestId).FirstOrDefault() != null)
+                               {
+                                   if (src.FEQuestions.Any(q => q.isApproved != null))
+                                   {
+                                       return true;
+                                   }
+                                   else
+                                   {
+                                       return false;
+                                   }
+                               }
+                               else
+                               {
+                                   if (src.Questions.Any(q => q.isApproved != null))
+                                   {
+                                       return true;
+                                   }
+                                   else
+                                   {
+                                       return false;
+                                   }
+                               }
+                           }
+                           )
+                    );
 
             CreateMap<Question, QuestionInRequestResponse>()
                     .ForMember(dest => dest.LevelName, opt => opt.MapFrom(src => src.Level.LevelName));
@@ -59,7 +94,7 @@ namespace examedu.DTO.Profiles
                     .ForMember(dest => dest.ModuleName, opt =>
                        opt.MapFrom((src, dest) =>
                         {
-                            if (dest.IsFinalExamBank == true)
+                            if (src.FEQuestions.Where(q => q.AddQuestionRequestId == src.AddQuestionRequestId).FirstOrDefault() != null)
                             {
                                 return src.FEQuestions.Select(q => q.Module.ModuleName).FirstOrDefault();
                             }
@@ -70,24 +105,10 @@ namespace examedu.DTO.Profiles
                         }
                        )
                     )
-                    // .ForMember(dest => dest.LevelName, opt =>
-                    //    opt.MapFrom((src, dest) =>
-                    //     {
-                    //         if (dest.IsFinalExamBank == true)
-                    //         {
-                    //             return src.FEQuestions.Select(q => q.Level.LevelName).FirstOrDefault();
-                    //         }
-                    //         else
-                    //         {
-                    //             return src.Questions.Select(q => q.Level.LevelName).FirstOrDefault();
-                    //         }
-                    //     }
-                    //    )
-                    // )
                     .ForMember(dest => dest.Questions, opt =>
                         opt.MapFrom((src, dest) =>
                         {
-                            if (dest.IsFinalExamBank == true)
+                            if (src.FEQuestions.Where(q => q.AddQuestionRequestId == src.AddQuestionRequestId).FirstOrDefault() != null)
                             {
                                 return (object)src.FEQuestions;
                             }
