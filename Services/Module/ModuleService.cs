@@ -141,20 +141,30 @@ namespace ExamEdu.Services
 
         public async Task<Tuple<int, IEnumerable<Module>>> getModulesWithClassModule(PaginationParameter paginationParameter, int teacherId)
         {
+
             var result = from m in _db.Modules
-                         join cm in _db.ClassModules on m.ModuleId equals cm.ModuleId
-                         join c in _db.Classes on cm.ClassId equals c.ClassId
-                         where cm.TeacherId == teacherId
+                         where m.ClassModules.Any(cm => cm.TeacherId == teacherId)
                          select new Module
                          {
                              ModuleId = m.ModuleId,
                              ModuleCode = m.ModuleCode,
                              ModuleName = m.ModuleName,
-                             ClassModules = new List<ClassModule> { new ClassModule { ClassModuleId = cm.ClassModuleId, Class = c } }
+                             //Select ClassModules along with classes of each classmodule
+                             ClassModules = m.ClassModules.Select(cm => new ClassModule
+                             {
+                                 ClassModuleId = cm.ClassModuleId,
+                                 Class = cm.Class,
+                             }).ToList()
+
                          };
+
+
+
+
             var modules = await result.ToListAsync();
 
             return Tuple.Create(modules.Count, modules.GetPage(paginationParameter));
+            // return Tuple.Create(result.Count, result.GetPage(paginationParameter));
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ using BackEnd.DTO.TeacherDTO;
 namespace ExamEdu.Controllers
 {
     [ApiController]
-    // [Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     public class TeacherController : ControllerBase
     {
@@ -61,7 +61,7 @@ namespace ExamEdu.Controllers
         //return 200 status code if teacher is IsHeadOfDepartment
         public async Task<ActionResult<bool>> IsHeadOfDepartment(int teacherId)
         {
-            
+
             if (await _teacherService.IsTeacherExist(teacherId) == false)
             {
                 return NotFound(new ResponseDTO(404, "Teacher Not Found"));
