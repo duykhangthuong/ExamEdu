@@ -225,7 +225,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfMCQuestionByLevel)
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                            await _db.FEQuestions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1)
+                            await _db.FEQuestions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1 && q.isApproved == true)
                             .Select(q => q.FEQuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
@@ -244,7 +244,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfNonMCQuestionByLevel) // random nonMCQ
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                           await _db.FEQuestions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1)
+                           await _db.FEQuestions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1 && q.isApproved == true)
                            .Select(q => q.FEQuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
@@ -269,7 +269,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfMCQuestionByLevel)
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1)
+                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1&& q.isApproved == true)
                             .Select(q => q.QuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
@@ -288,7 +288,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfNonMCQuestionByLevel) // random nonMCQ
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1)
+                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1&& q.isApproved == true)
                             .Select(q => q.QuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
