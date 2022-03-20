@@ -8,12 +8,14 @@ using BackEnd.Helper.Authentication;
 using BackEnd.Helper.Email;
 using BackEnd.Helper.RefreshToken;
 using BackEnd.Services;
+using BackEnd.Services.Cache;
 using BackEnd.Services.ExamQuestions;
 using examedu.Services;
 using examedu.Services.Account;
 using examedu.Services.Classes;
 using ExamEdu.DB;
 using ExamEdu.DTO;
+using ExamEdu.Helper.UploadDownloadFiles;
 using ExamEdu.Hubs;
 using ExamEdu.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +32,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using StackExchange.Redis.Extensions.Core.Configuration;
+using StackExchange.Redis.Extensions.Newtonsoft;
 
 namespace ExamEdu
 {
@@ -85,6 +89,14 @@ namespace ExamEdu
             // Add refresh token service
             services.AddSingleton<IRefreshToken, RefreshToken>();
 
+            // Config username and password Mega using
+            services.AddSingleton<IMegaHelper>(provider =>
+            {
+                string username = Configuration["Email:MailAddress"];
+                string password = Configuration["Email:MegaPassword"];
+                return new MegaHelper(username, password);
+            });
+
             // Map data from Model to DTO and back
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<IAccountService, AccountService>();
@@ -99,8 +111,12 @@ namespace ExamEdu
             services.AddScoped<IExamQuestionsService, ExamQuestionsService>();
             services.AddScoped<IClassModuleService, ClassModuleService>();
             services.AddScoped<IClassService, ClassService>();
+            services.AddScoped<ICacheProvider,CacheProvider>();
 
             services.AddSignalR();
+
+            //Config redis for using signalR
+            services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(Configuration.GetSection("Redis").Get<RedisConfiguration>());
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -168,11 +184,11 @@ namespace ExamEdu
             //Get front-end url from appsettings.json
             var frontEndDevUrl = Configuration["FrontEndDevUrl"];
 
-            //Get front-end url from appsettings.json
-            // var frontEndUrl = Configuration["FrontEndUrl"];
+            // Get front-end url from appsettings.json
+            var frontEndUrl = Configuration["FrontEndUrl"];
 
             //CORS config for Front-end url
-            app.UseCors(options => options.WithOrigins(frontEndDevUrl)
+            app.UseCors(options => options.WithOrigins(frontEndDevUrl,frontEndUrl)
                                         .AllowAnyMethod()
                                         .AllowAnyHeader()
                                         .AllowCredentials());

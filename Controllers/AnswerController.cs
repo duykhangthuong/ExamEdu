@@ -47,7 +47,7 @@ namespace ExamEdu.Controllers
 
             int res = await _markService.SaveStudentMark(mark, examId, studentId);
             if (res == 1)
-                return Ok(new ResponseDTO(200, $"Your multiple choice mark is {mark}. If your exam has essay question, we will inform you later"));
+                return Ok(new ResponseDTO(200, $"Your multiple choice mark is <b>{mark}</b>. </br>If your exam has essay question, we will inform you later"));
             else return BadRequest(new ResponseDTO(400, "Some error happen"));
 
         }

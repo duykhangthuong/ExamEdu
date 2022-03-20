@@ -42,14 +42,26 @@ namespace BackEnd.Controllers
         /// <param name="examId"></param>
         /// <returns></returns>
         [HttpGet("{examId:int}")]
-        public async Task<ActionResult<ExamQuestionsResponse>> GetExamQuestions(int examId)
+        public async Task<ActionResult<ExamQuestionsResponse>> GetExamQuestions(int examId, int studentId)
         {
             var exam = await _examService.getExamById(examId);
             if (exam == null)
             {
                 return NotFound(new ResponseDTO(404, "Exam cannot be found!"));
             }
-
+            var studentExamInfo = _examService.GetStudentExamInfo(studentId, examId);
+            if (studentExamInfo == null)
+            {
+                return NotFound(new ResponseDTO(404, "Students do not have this exam"));
+            }
+            if (studentExamInfo.FinishAt != null)
+            {
+                return BadRequest(new ResponseDTO(400, "You have done this exam before"));
+            }
+            if (exam.ExamDay > DateTime.Now)
+            {
+                return BadRequest(new ResponseDTO(400, $"It is not time to do the exam. Now is {DateTime.Now}"));
+            }
             bool isFinalExam = _examService.IsFinalExam(examId);
             int examCode = await _examQuestionsService.GetRandomExamCodeByExamId(examId, isFinalExam);
             List<int> questIdList = new List<int>();

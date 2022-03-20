@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using examedu.DTO.ExamDTO;
@@ -10,55 +11,52 @@ using ExamEdu.DB.Models;
 using ExamEdu.DTO.ExamDTO;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Helper;
+using ExamEdu.Helper.UploadDownloadFiles;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace ExamEdu.Services
 {
     public class ExamService : IExamService
     {
         private readonly DataContext _db;
+        private readonly IMegaHelper _megaHelper;
         private readonly int maxMark = 10;
-        public ExamService(DataContext dataContext)
+        public ExamService(DataContext dataContext, IMegaHelper megaHelper)
         {
             _db = dataContext;
+            _megaHelper = megaHelper;
         }
         /// <summary>
-        /// Get Exam Schedule of student, which have Exam day > now
+        /// Get Exam Schedule of student, which have Exam day + Duration  > now
         /// </summary>
         /// <param name="studentId"></param>
         /// <param name="paginationParameter"></param>
         /// <returns></returns>
         public async Task<Tuple<int, IEnumerable<Exam>>> getExamByStudentId(int studentId, PaginationParameter paginationParameter)
         {
-            var allExamOfStudent = await _db.StudentExamInfos.Where(e => e.StudentId == studentId && e.FinishAt == null).Select(e => e.ExamId).ToListAsync();
-            if (allExamOfStudent.Count() == 0)
-            {
-                return new Tuple<int, IEnumerable<Exam>>(0, null);
-            }
-            List<Exam> examList = new List<Exam>();
-            foreach (var examId in allExamOfStudent)
-            {
-                var exam = await _db.Exams.Select(e => new Exam
-                {
-                    ExamId = e.ExamId,
-                    ExamName = e.ExamName,
-                    Description = e.Description,
-                    ExamDay = e.ExamDay,
-                    DurationInMinute = e.DurationInMinute,
-                    ModuleId = e.ModuleId,
-                    Password = e.Password,
-                    Module = new Module
-                    {
-                        ModuleCode = e.Module.ModuleCode
-                    }
-                }).FirstOrDefaultAsync(e => e.ExamId == examId);
-                if (exam is not null)
-                {
-                    examList.Add(exam);
-                }
-            }
 
-            return Tuple.Create(examList.Count, examList.GetPage(paginationParameter));
+            var examScheduleList = await _db.StudentExamInfos.Join(_db.Exams, sei => sei.ExamId, e => e.ExamId, (sei, e) => new
+            {
+                sei,
+                e
+            }).Where(x => x.sei.StudentId == studentId
+                        && x.sei.FinishAt == null
+                        && x.e.ExamDay.AddMinutes(x.e.DurationInMinute) > DateTime.Now)
+                                                                            .Select(x => new Exam
+                                                                            {
+                                                                                ExamId = x.e.ExamId,
+                                                                                ExamName = x.e.ExamName,
+                                                                                Description = x.e.Description,
+                                                                                Module = new Module
+                                                                                {
+                                                                                    ModuleCode = x.e.Module.ModuleCode
+                                                                                },
+                                                                                ExamDay = x.e.ExamDay,
+                                                                                Password = x.e.Password,
+                                                                                DurationInMinute = x.e.DurationInMinute,
+                                                                            }).OrderByDescending(e => e.ExamDay).ToListAsync();
+            return Tuple.Create(examScheduleList.Count, examScheduleList.GetPage(paginationParameter));
         }
 
         /// <summary>
@@ -203,6 +201,10 @@ namespace ExamEdu.Services
                                 .FirstOrDefaultAsync();
         }
 
+        public StudentExamInfo GetStudentExamInfo(int studentId, int examId)
+        {
+            return _db.StudentExamInfos.Where(sei => sei.ExamId == examId && sei.StudentId == studentId).FirstOrDefault();
+        }
         public async Task<int> CreateExamPaperAuto(CreateExamAutoInput input)
         {
             decimal totalMCQMark = maxMark;
@@ -214,6 +216,10 @@ namespace ExamEdu.Services
             foreach (var level in input.NumberOfMCQuestionByLevel)
             {
                 totalMCQuestion += level.Value;
+            }
+            if (totalMCQuestion == 0)
+            {
+                totalMCQuestion++;
             }
             decimal MCQMark = totalMCQMark / totalMCQuestion;
 
@@ -269,7 +275,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfMCQuestionByLevel)
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1&& q.isApproved == true)
+                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId == 1 && q.isApproved == true)
                             .Select(q => q.QuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
@@ -288,7 +294,7 @@ namespace ExamEdu.Services
                     foreach (var level in input.NumberOfNonMCQuestionByLevel) // random nonMCQ
                     {
                         List<int> randomList = ChooseRandomFromList.ChooseRandom<int>(
-                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1&& q.isApproved == true)
+                            await _db.Questions.Where(q => q.LevelId == level.Key && q.QuestionTypeId != 1 && q.isApproved == true)
                             .Select(q => q.QuestionId).ToListAsync(), level.Value);
                         if (randomList == null)
                         {
@@ -372,7 +378,7 @@ namespace ExamEdu.Services
         {
             var studentExamInfor = await _db.StudentExamInfos.Join(_db.Exams, sei => sei.ExamId, e => e.ExamId, (sei, e) => new { sei, e })
                                                             .Join(_db.Students, x => x.sei.StudentId, s => s.StudentId, (x, s) => new { x, s })
-                                                            .Where(y => y.x.sei.ExamId == examId)
+                                                            .Where(y => y.x.sei.ExamId == examId && y.x.sei.FinishAt != null)
                                                             .Select(y => new StudentMarkResponse
                                                             {
                                                                 ExamName = y.x.e.ExamName,
@@ -387,6 +393,86 @@ namespace ExamEdu.Services
             int totalRecord = studentExamInfor.Count;
 
             return new Tuple<int, IEnumerable<StudentMarkResponse>>(totalRecord, studentExamInfor.GetPage(paginationParameter));
+        }
+
+        public async Task<IEnumerable<StudentMarkResponse>> GetResultExamListByExamId(int examId)
+        {
+            var studentExamInfor = await _db.StudentExamInfos.Join(_db.Exams, sei => sei.ExamId, e => e.ExamId, (sei, e) => new { sei, e })
+                                                            .Join(_db.Students, x => x.sei.StudentId, s => s.StudentId, (x, s) => new { x, s })
+                                                            .Where(y => y.x.sei.ExamId == examId && y.x.sei.FinishAt != null)
+                                                            .Select(y => new StudentMarkResponse
+                                                            {
+                                                                ExamName = y.x.e.ExamName,
+                                                                ExamDay = y.x.e.ExamDay,
+                                                                StudentId = y.s.StudentId,
+                                                                StudentName = y.s.Fullname,
+                                                                StudentEmail = y.s.Email,
+                                                                FinishedAt = y.x.sei.FinishAt,
+                                                                Mark = y.x.sei.Mark,
+                                                                NeedToGradeTextQuestion = y.x.sei.NeedToGradeTextQuestion,
+                                                            }).ToListAsync();
+            
+            return studentExamInfor;
+        }
+        public async Task<ClassModule> GetClassModuleInfo(int classModuleId)
+        {
+            //Get class module info from classModuleId
+            var queryResult = from cm in _db.ClassModules
+                              join c in _db.Classes on cm.ClassId equals c.ClassId
+                              join m in _db.Modules on cm.ModuleId equals m.ModuleId
+                              where cm.ClassModuleId == classModuleId
+                              select new ClassModule
+                              {
+                                  ClassModuleId = cm.ClassModuleId,
+                                  Class = new Class
+                                  {
+                                      ClassId = c.ClassId,
+                                      ClassName = c.ClassName
+                                  },
+                                  Module = new Module
+                                  {
+                                      ModuleId = m.ModuleId,
+                                      ModuleCode = m.ModuleCode,
+                                      ModuleName = m.ModuleName
+                                  }
+                              };
+            var classModule = await queryResult.FirstOrDefaultAsync();
+
+            return classModule;
+        }
+        public async Task<byte[]> GenerateExamMarkReport(int examId, int classModuleId){
+            string path = "\\wwwroot\\ReportTemplate\\MarkReportTemplate.xlsx";
+            string workingDirectory = Environment.CurrentDirectory;
+            string pathToTest = workingDirectory + path;
+
+
+            var studentMarkResult=await this.GetResultExamListByExamId(examId);
+            var classModules =await this.GetClassModuleInfo(classModuleId);
+            
+            // using var stream = File.OpenRead(pathToTest);
+            using var stream = await _megaHelper.Download(new Uri("https://mega.nz/file/zsNCVbYQ#zfVii8j29x6UUTm-cxTYiZHA6C3l08MFQPuCLST97qI"));
+            using (var package = new ExcelPackage())
+            {
+                await package.LoadAsync(stream);
+                var examMarkReport = package.Workbook.Worksheets[0];
+                
+                examMarkReport.Cells["A2"].Value=classModules.Class.ClassName;
+                examMarkReport.Cells["A3"].Value=$"{classModules.Module.ModuleCode} - {classModules.Module.ModuleName}";
+                examMarkReport.Cells["C2"].Value=studentMarkResult.First().ExamName;
+                examMarkReport.Cells["C3"].Value=studentMarkResult.First().ExamDay;
+
+                var studentMarkResultFill =examMarkReport.Cells[$"A6:E{studentMarkResult.Count() + 6}"];
+                studentMarkResultFill.FillDataToCells(studentMarkResult,(markInfo,cells)=>{
+                    cells.ToList().ForEach(c => c.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin));
+                    cells[0].Value=markInfo.StudentId;
+                    cells[1].Value=markInfo.StudentName;
+                    cells[2].Value=markInfo.FinishedAt-markInfo.ExamDay;
+                    cells[3].Value=markInfo.FinishedAt;
+                    cells[4].Value=markInfo.Mark;
+                });
+
+                return await package.GetAsByteArrayAsync();
+            }
         }
     }
 }

@@ -23,6 +23,8 @@ namespace ExamEdu.Services
 
         Task<Tuple<int, IEnumerable<StudentMarkResponse>>> GetResultExamByExamId(int examId, PaginationParameter paginationParameter);
 
-
+        StudentExamInfo GetStudentExamInfo(int studentId, int examId);
+        Task<byte[]> GenerateExamMarkReport(int examId, int classModuleId);
+        Task<IEnumerable<StudentMarkResponse>> GetResultExamListByExamId(int examId);
     }
 }

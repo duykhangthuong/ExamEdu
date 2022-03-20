@@ -186,6 +186,15 @@ namespace ExamEdu.Controllers
 
             return Ok(new PaginationResponse<IEnumerable<StudentMarkResponse>>(totalRecord, studentMarkResponse));
         }
-
+        [HttpGet("result/report/{examId:int}/{classModuleId:int}")]
+        public async Task<ActionResult> ExportExamMarkReport(int examId,int classModuleId)
+        {
+            var studentListMark= await _examService.GetResultExamListByExamId(examId);
+            if(studentListMark.Count()==0){
+                return NotFound(new ResponseDTO(404, "There is no student taking this exam "));
+            }
+            var stream = await _examService.GenerateExamMarkReport(examId, classModuleId);
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Report.xlsx");
+        }
     }
 }

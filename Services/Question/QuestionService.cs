@@ -156,8 +156,6 @@ namespace examedu.Services
             }
 
             IEnumerable<AddQuestionRequest> requestList = await requests
-                                                .GetCount(out var totalRecord)
-                                                .GetPage(paginationParameter)
                                                 .Select(r => new AddQuestionRequest
                                                 {
                                                     AddQuestionRequestId = r.AddQuestionRequestId,
@@ -174,7 +172,7 @@ namespace examedu.Services
                                                 .OrderByDescending(r => r.CreatedAt)
                                                 .ToListAsync();
 
-            return Tuple.Create(totalRecord, requestList);
+            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList,paginationParameter));
         }
 
         /// <summary>
@@ -341,8 +339,6 @@ namespace examedu.Services
             }
 
             IEnumerable<AddQuestionRequest> requestList = await requests
-                                                .GetCount(out var totalRecord)
-                                                .GetPage(paginationParameter)
                                                 .Select(r => new AddQuestionRequest
                                                 {
                                                     AddQuestionRequestId = r.AddQuestionRequestId,
@@ -358,7 +354,7 @@ namespace examedu.Services
                                                 .OrderByDescending(r => r.CreatedAt)
                                                 .ToListAsync();
 
-            return Tuple.Create(totalRecord, requestList);
+            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList,paginationParameter));
         }
 
     }

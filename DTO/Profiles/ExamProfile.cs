@@ -18,7 +18,8 @@ namespace ExamEdu.DTO.Profiles
             CreateMap<CreateExamByHandInput, Exam_FEQuestion>();
             CreateMap<CreateExamByHandInput, ExamQuestion>();
             CreateMap<Exam, ExamResponse>();
-            CreateMap<Exam, ExamQuestionsResponse>().ForMember(eqr => eqr.ModuleCode, s => s.MapFrom(s => s.Module.ModuleCode));
+            CreateMap<Exam, ExamQuestionsResponse>()
+                .ForMember(eqr => eqr.ModuleCode, s => s.MapFrom(s => s.Module.ModuleCode));
             CreateMap<Exam, ProgressExamResponse>();
 
             //Mapping for create exam info
