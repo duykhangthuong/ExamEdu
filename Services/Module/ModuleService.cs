@@ -149,13 +149,12 @@ namespace ExamEdu.Services
                              ModuleId = m.ModuleId,
                              ModuleCode = m.ModuleCode,
                              ModuleName = m.ModuleName,
-                             //Select ClassModules along with classes of each classmodule
-                             ClassModules = m.ClassModules.Select(cm => new ClassModule
-                             {
-                                 ClassModuleId = cm.ClassModuleId,
-                                 Class = cm.Class,
-                             }).ToList()
-
+                             ClassModules = m.ClassModules.Where(cm => cm.TeacherId == teacherId)
+                            .Select(cm => new ClassModule
+                            {
+                                ClassModuleId = cm.ClassModuleId,
+                                Class = cm.Class,
+                            }).ToList()
                          };
 
 
