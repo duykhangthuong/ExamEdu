@@ -345,15 +345,26 @@ namespace ExamEdu.Services
             //             where cm.ClassModuleId == classModuleId
             //             select e;
 
-            var exams = await _db.ClassModules.Join(_db.Modules, cm => cm.ModuleId, m => m.ModuleId, (cm, m) => new { cm, m })
-                        .Join(_db.Exams, x => x.m.ModuleId, e => e.ModuleId, (x, e) => new { x, e })
-                        .Where(y => y.x.cm.ClassModuleId == classModuleId)
-                        .OrderBy(y => y.e.ExamDay)
-                        .Select(y => y.e).ToListAsync();
+            // var exams = await _db.ClassModules.Join(_db.Modules, cm => cm.ModuleId, m => m.ModuleId, (cm, m) => new { cm, m })
+            //             .Join(_db.Exams, x => x.m.ModuleId, e => e.ModuleId, (x, e) => new { x, e })
+            //             .Where(y => y.x.cm.ClassModuleId == classModuleId)
+            //             .OrderBy(y => y.e.ExamDay)
+            //             .Select(y => y.e).ToListAsync();
 
-            int totalRecord = exams.Count;
+            var exams = from cm in _db.ClassModules
+                        join cms in _db.Class_Module_Students on cm.ClassModuleId equals cms.ClassModuleId
+                        join s in _db.Students on cms.StudentId equals s.StudentId
+                        join sei in _db.StudentExamInfos on s.StudentId equals sei.StudentId
+                        join e in _db.Exams on sei.ExamId equals e.ExamId
+                        where cm.ClassModuleId == classModuleId
+                        orderby e.ExamDay
+                        select e;
 
-            return new Tuple<int, IEnumerable<Exam>>(totalRecord, exams.GetPage(paginationParameter));
+            var distinctExams = exams.Distinct();
+
+            int totalRecord = distinctExams.Count();
+
+            return new Tuple<int, IEnumerable<Exam>>(totalRecord, distinctExams.GetPage(paginationParameter));
         }
 
 
@@ -411,7 +422,7 @@ namespace ExamEdu.Services
                                                                 Mark = y.x.sei.Mark,
                                                                 NeedToGradeTextQuestion = y.x.sei.NeedToGradeTextQuestion,
                                                             }).ToListAsync();
-            
+
             return studentExamInfor;
         }
         public async Task<ClassModule> GetClassModuleInfo(int classModuleId)
@@ -440,35 +451,37 @@ namespace ExamEdu.Services
 
             return classModule;
         }
-        public async Task<byte[]> GenerateExamMarkReport(int examId, int classModuleId){
+        public async Task<byte[]> GenerateExamMarkReport(int examId, int classModuleId)
+        {
             string path = "\\wwwroot\\ReportTemplate\\MarkReportTemplate.xlsx";
             string workingDirectory = Environment.CurrentDirectory;
             string pathToTest = workingDirectory + path;
 
 
-            var studentMarkResult=await this.GetResultExamListByExamId(examId);
-            var classModules =await this.GetClassModuleInfo(classModuleId);
-            
+            var studentMarkResult = await this.GetResultExamListByExamId(examId);
+            var classModules = await this.GetClassModuleInfo(classModuleId);
+
             // using var stream = File.OpenRead(pathToTest);
             using var stream = await _megaHelper.Download(new Uri("https://mega.nz/file/zsNCVbYQ#zfVii8j29x6UUTm-cxTYiZHA6C3l08MFQPuCLST97qI"));
             using (var package = new ExcelPackage())
             {
                 await package.LoadAsync(stream);
                 var examMarkReport = package.Workbook.Worksheets[0];
-                
-                examMarkReport.Cells["A2"].Value=classModules.Class.ClassName;
-                examMarkReport.Cells["A3"].Value=$"{classModules.Module.ModuleCode} - {classModules.Module.ModuleName}";
-                examMarkReport.Cells["C2"].Value=studentMarkResult.First().ExamName;
-                examMarkReport.Cells["C3"].Value=studentMarkResult.First().ExamDay;
 
-                var studentMarkResultFill =examMarkReport.Cells[$"A6:E{studentMarkResult.Count() + 6}"];
-                studentMarkResultFill.FillDataToCells(studentMarkResult,(markInfo,cells)=>{
+                examMarkReport.Cells["A2"].Value = classModules.Class.ClassName;
+                examMarkReport.Cells["A3"].Value = $"{classModules.Module.ModuleCode} - {classModules.Module.ModuleName}";
+                examMarkReport.Cells["C2"].Value = studentMarkResult.First().ExamName;
+                examMarkReport.Cells["C3"].Value = studentMarkResult.First().ExamDay;
+
+                var studentMarkResultFill = examMarkReport.Cells[$"A6:E{studentMarkResult.Count() + 6}"];
+                studentMarkResultFill.FillDataToCells(studentMarkResult, (markInfo, cells) =>
+                {
                     cells.ToList().ForEach(c => c.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin));
-                    cells[0].Value=markInfo.StudentId;
-                    cells[1].Value=markInfo.StudentName;
-                    cells[2].Value=markInfo.FinishedAt-markInfo.ExamDay;
-                    cells[3].Value=markInfo.FinishedAt;
-                    cells[4].Value=markInfo.Mark;
+                    cells[0].Value = markInfo.StudentId;
+                    cells[1].Value = markInfo.StudentName;
+                    cells[2].Value = markInfo.FinishedAt - markInfo.ExamDay;
+                    cells[3].Value = markInfo.FinishedAt;
+                    cells[4].Value = markInfo.Mark;
                 });
 
                 return await package.GetAsByteArrayAsync();
