@@ -357,14 +357,14 @@ namespace ExamEdu.Services
                         join sei in _db.StudentExamInfos on s.StudentId equals sei.StudentId
                         join e in _db.Exams on sei.ExamId equals e.ExamId
                         where cm.ClassModuleId == classModuleId
-                        orderby e.ExamDay
+                        orderby e.ExamDay descending
                         select e;
 
             var distinctExams = exams.Distinct();
 
             int totalRecord = distinctExams.Count();
 
-            return new Tuple<int, IEnumerable<Exam>>(totalRecord, distinctExams.GetPage(paginationParameter));
+            return new Tuple<int, IEnumerable<Exam>>(totalRecord, distinctExams.OrderByDescending(e => e.ExamDay).GetPage(paginationParameter));
         }
 
 
