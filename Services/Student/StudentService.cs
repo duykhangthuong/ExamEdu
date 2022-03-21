@@ -82,6 +82,7 @@ namespace examedu.Services
                 }
                 listToRetrun.Add(moduleMarkInfor);
             }
+            listToRetrun = listToRetrun.OrderByDescending(t => t.ExamDate).ToList();
             return listToRetrun;
         }
         public bool CheckStudentExist(int id)
