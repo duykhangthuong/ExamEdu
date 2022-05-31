@@ -46,5 +46,16 @@ namespace examedu.Services.Classes
 
             return Tuple.Create(classes.Count, classes.GetPage(paginationParameter));
         }
+
+        /// <summary>
+        /// Get all classes in database (by academic department)
+        /// </summary>
+        public async Task<Tuple<int, IEnumerable<Class>>> GetAllClasses( PaginationParameter paginationParameter)
+        {
+            // Get all class in database
+            var classes = await _db.Classes.Where(c => c.DeactivatedAt == null).ToListAsync();
+            return Tuple.Create(classes.Count, classes.GetPage(paginationParameter));
+        }
+
     }
 }

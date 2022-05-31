@@ -453,11 +453,6 @@ namespace ExamEdu.Services
         }
         public async Task<byte[]> GenerateExamMarkReport(int examId, int classModuleId)
         {
-            string path = "\\wwwroot\\ReportTemplate\\MarkReportTemplate.xlsx";
-            string workingDirectory = Environment.CurrentDirectory;
-            string pathToTest = workingDirectory + path;
-
-
             var studentMarkResult = await this.GetResultExamListByExamId(examId);
             var classModules = await this.GetClassModuleInfo(classModuleId);
 

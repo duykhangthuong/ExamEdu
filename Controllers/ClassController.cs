@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BackEnd.Services;
 using examedu.Services.Classes;
+using ExamEdu.DB.Models;
 using ExamEdu.DTO;
 using ExamEdu.DTO.ClassDTO;
 using ExamEdu.DTO.PaginationDTO;
@@ -52,6 +53,22 @@ namespace examedu.Controllers
             }
 
             var classes = await _classService.GetClasses(teacherId, moduleId, paginationParameter);
+
+            if (classes.Item1 == 0)
+            {
+                return NotFound(new ResponseDTO(404, "No class found"));
+            }
+            //Map classes to ClassNameResponse
+            var classesResponse = _mapper.Map<IEnumerable<ClassNameResponse>>(classes.Item2);
+
+            //Return the classes in a pagination response
+            return Ok(new PaginationResponse<IEnumerable<ClassNameResponse>>(classes.Item1, classesResponse));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllClasses([FromQuery] PaginationParameter paginationParameter)
+        {
+            var classes = await _classService.GetAllClasses(paginationParameter);
 
             if (classes.Item1 == 0)
             {

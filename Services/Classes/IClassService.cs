@@ -10,5 +10,6 @@ namespace examedu.Services.Classes
     public interface IClassService
     {
         Task<Tuple<int, IEnumerable<Class>>> GetClasses(int teacherId, int moduleId, PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<Class>>> GetAllClasses(PaginationParameter paginationParameter);
     }
 }

@@ -33,7 +33,7 @@ namespace BackEnd.Helper.Email
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com");
 
                 // Ready mail template
-                string filePath = _env.WebRootPath + "beefree.html";
+                string filePath = "beefree.html";
                 StreamReader str = new StreamReader(filePath);
                 string mailTemplate = await str.ReadToEndAsync();
                 str.Close();
