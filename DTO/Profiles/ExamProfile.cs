@@ -28,6 +28,9 @@ namespace ExamEdu.DTO.Profiles
                 .ForMember(e => e.IsCancelled, s => s.MapFrom(s => false))
                 .ForMember(e => e.StudentExamInfos, s => s.MapFrom(s => s.StudentIds.Select(id => new StudentExamInfo() { StudentId = id })));
 
+            //Mapping for update exam info input
+            CreateMap<UpdateExamInfoInput, Exam>();
+                
         }
 
     }

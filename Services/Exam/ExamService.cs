@@ -482,5 +482,30 @@ namespace ExamEdu.Services
                 return await package.GetAsByteArrayAsync();
             }
         }
+
+        /// <summary>
+        /// Update the information of the exam
+        /// </summary>
+        /// <param name="exam"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateExam(Exam exam)
+        {
+            _db.Exams.Attach(exam);
+            var entry = _db.Entry(exam);
+            
+            entry.Property(e => e.ExamName).IsModified = true;
+            entry.Property(e => e.ExamDay).IsModified = true;
+            entry.Property(e => e.DurationInMinute).IsModified = true;
+            entry.Property(e => e.Description).IsModified = true;
+            entry.Property(e => e.Password).IsModified = true;
+            entry.Property(e => e.Room).IsModified = true;
+            entry.Property(e => e.ModuleId).IsModified = true;
+            entry.Property(e => e.ProctorId).IsModified = true;
+            entry.Property(e => e.SupervisorId).IsModified = true;
+
+            int result = await _db.SaveChangesAsync();
+
+            return result;
+        }
     }
 }

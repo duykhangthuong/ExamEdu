@@ -196,5 +196,21 @@ namespace ExamEdu.Controllers
             var stream = await _examService.GenerateExamMarkReport(examId, classModuleId);
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Report.xlsx");
         }
+
+        [HttpPut("update-exam-info")]
+        public async Task<ActionResult> UpdateExam([FromBody] UpdateExamInfoInput input)
+        {
+            if (await _examService.getExamById(input.ExamId) is null)
+            {
+                return BadRequest(new ResponseDTO(400, "Exam not found"));
+            }
+            Exam exam = _mapper.Map<Exam>(input);
+            int status = await _examService.UpdateExam(exam);
+            if (status == 1)
+            {
+                return Ok(new ResponseDTO(200, "Exam successfully updated"));
+            }
+            return BadRequest(new ResponseDTO(400, "Error when update exam"));
+        }
     }
 }
