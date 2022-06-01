@@ -78,6 +78,34 @@ namespace ExamEdu.Services
             return classModule;
         }
 
+        public async Task<List<ClassModule>> GetClassModuleList(int classId)
+        {
+
+            //var queryResult = await _db.ClassModules.Where(cm => cm.ClassId == classId).ToListAsync();
+
+            var result = from cm in _db.ClassModules
+                         where cm.ClassId == classId
+                         join m in _db.Modules on cm.ModuleId equals m.ModuleId
+                         join t in _db.Teachers on cm.TeacherId equals t.TeacherId
+                         select new ClassModule
+                         {
+                             ClassModuleId = cm.ClassModuleId,
+                             Module = new Module
+                             {
+                                 ModuleCode = m.ModuleCode,
+                                 ModuleName = m.ModuleName
+                             },
+                             Teacher = new Teacher
+                             {
+                                 Fullname = t.Fullname,
+                             }
+
+                         };
+
+            var queryResult = await result.ToListAsync();
+            return queryResult;
+        }
+
         public async Task<Tuple<int, IEnumerable<ClassModule>>> GetClassModules(int teacherId, int moduleId, PaginationParameter paginationParameter)
         {
             var queryResult = from cm in _db.ClassModules

@@ -7,6 +7,7 @@ using examedu.Services.Classes;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
 using ExamEdu.DTO.ClassDTO;
+using ExamEdu.DTO.ClassModuleDTO;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +23,7 @@ namespace examedu.Controllers
     {
 
         private readonly IClassService _classService;
+        private readonly IClassModuleService _classModuleService;
         private readonly IMapper _mapper;
         private readonly IModuleService _moduleService;
         private readonly ITeacherService _teacherService;
@@ -29,12 +31,13 @@ namespace examedu.Controllers
         public ClassController(IClassService classService,
                                IMapper mapper,
                                IModuleService moduleService,
-                               ITeacherService teacherService)
+                               ITeacherService teacherService, IClassModuleService classModuleService)
         {
             _classService = classService;
             _mapper = mapper;
             _moduleService = moduleService;
             _teacherService = teacherService;
+            _classModuleService = classModuleService;
         }
 
 
@@ -79,6 +82,52 @@ namespace examedu.Controllers
 
             //Return the classes in a pagination response
             return Ok(new PaginationResponse<IEnumerable<ClassNameResponse>>(classes.Item1, classesResponse));
+        }
+
+        [HttpGet("{classId:int}")]
+        public async Task<IActionResult> GetClass(int classId)
+        {
+            if (await _classService.IsClassExist(classId) == false)
+            {
+                return BadRequest(new ResponseDTO(400, "Class not found"));
+            }
+
+            //basic infor
+            Class basicInfor = await _classService.GetClassBasicInforById(classId);
+
+            //list class module
+            List<ClassModule> listClassModule = await _classModuleService.GetClassModuleList(classId);
+
+            basicInfor.ClassModules = listClassModule;
+
+            var ClassModulesList = new List<ClassModuleResponse2>();
+
+            foreach (var classModule in listClassModule)
+            {
+                ClassModulesList.Add(new ClassModuleResponse2
+                {
+                    ClassModuleId = classModule.ClassModuleId,
+                    ModuleCode = classModule.Module.ModuleCode,
+                    ModuleName = classModule.Module.ModuleName,
+                    TeacherName = classModule.Teacher.Fullname
+                });
+            }
+
+            ClassResponse classResponse = new ClassResponse()
+            {
+                ClassId = classId,
+                ClassName = basicInfor.ClassName,
+                CreatedAt = basicInfor.CreatedAt,
+                StartDay = basicInfor.StartDay,
+                EndDay = basicInfor.EndDay,
+                ClassModules = ClassModulesList
+            };
+
+
+            //var result = _mapper.Map<ClassResponse>(basicInfor);
+
+            return Ok(classResponse);
+            
         }
     }
 }

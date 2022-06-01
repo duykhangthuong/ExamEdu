@@ -7,6 +7,7 @@ using ExamEdu.DB.Models;
 using ExamEdu.DTO.PaginationDTO;
 using Microsoft.EntityFrameworkCore;
 using ExamEdu.Helper;
+using ExamEdu.DTO.ClassDTO;
 
 namespace examedu.Services.Classes
 {
@@ -18,6 +19,12 @@ namespace examedu.Services.Classes
         {
             _db = db;
         }
+
+        public async Task<Class> GetClassBasicInforById(int classId)
+        {
+            return await _db.Classes.Where(c => c.ClassId == classId).FirstOrDefaultAsync();
+        }
+
 
 
         /// <summary>
@@ -57,5 +64,10 @@ namespace examedu.Services.Classes
             return Tuple.Create(classes.Count, classes.GetPage(paginationParameter));
         }
 
+
+        public async Task<bool> IsClassExist(int classId)
+        {
+            return await _db.Classes.Where(s => s.ClassId == classId && s.DeactivatedAt == null).AnyAsync();
+        }
     }
 }

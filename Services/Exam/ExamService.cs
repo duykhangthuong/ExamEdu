@@ -193,6 +193,7 @@ namespace ExamEdu.Services
                                     ProctorId = e.ProctorId,
                                     SupervisorId = e.SupervisorId,
                                     ModuleId = e.ModuleId,
+                                    Room = e.Room,
                                     Module = new Module
                                     {
                                         ModuleCode = e.Module.ModuleCode
@@ -505,6 +506,24 @@ namespace ExamEdu.Services
 
             int result = await _db.SaveChangesAsync();
 
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="examId"></param>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateExamRoom(int examId, string roomId)
+        {
+            var exam = await _db.Exams.Where(c => c.ExamId == examId).FirstOrDefaultAsync();
+            if(exam == null)
+            {
+                return 0;
+            }
+            exam.Room = roomId;
+            int result = await _db.SaveChangesAsync();
             return result;
         }
     }
