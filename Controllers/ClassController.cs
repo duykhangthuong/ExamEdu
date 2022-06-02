@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.DTO.ClassDTO;
 using BackEnd.Services;
+using examedu.Services;
 using examedu.Services.Classes;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
@@ -27,16 +29,20 @@ namespace examedu.Controllers
         private readonly IMapper _mapper;
         private readonly IModuleService _moduleService;
         private readonly ITeacherService _teacherService;
+        private readonly IStudentService _studentService;
 
         public ClassController(IClassService classService,
                                IMapper mapper,
                                IModuleService moduleService,
-                               ITeacherService teacherService, IClassModuleService classModuleService)
+                               IStudentService studentService,
+                               ITeacherService teacherService,
+                               IClassModuleService classModuleService)
         {
             _classService = classService;
             _mapper = mapper;
             _moduleService = moduleService;
             _teacherService = teacherService;
+            _studentService = studentService;
             _classModuleService = classModuleService;
         }
 
@@ -84,6 +90,52 @@ namespace examedu.Controllers
             return Ok(new PaginationResponse<IEnumerable<ClassNameResponse>>(classes.Item1, classesResponse));
         }
 
+        [HttpPost("createClass")]
+        public async Task<ActionResult> CreateNewClass([FromBody] CreateClassInput input)
+        {
+            if (await _classService.IsClassNameExist(input.ClassName))
+            {
+                return BadRequest(new ResponseDTO(400, "Class already exist"));
+            }
+
+            foreach (var moduleTeacherStudentId in input.ModuleTeacherStudentIds)
+            {
+                foreach (int studentId in moduleTeacherStudentId.StudentIds)
+                {
+                    if (_studentService.CheckStudentExist(studentId) == false)
+                    {
+                        return NotFound(new ResponseDTO(404, "Student not exist"));
+                    }
+                }
+            }
+
+            foreach (var moduleTeacherId in input.ModuleTeacherStudentIds)
+            {
+                if (await _teacherService.IsTeacherExist(moduleTeacherId.TeacherId) == false)
+                {
+                    return NotFound(new ResponseDTO(404, "Teacher not exist"));
+                }
+                if (_moduleService.IsModuleExist(moduleTeacherId.ModuleId) == false)
+                {
+                    return NotFound(new ResponseDTO(404, "Module not exist"));
+                }
+            }
+
+            if (input.StartDay > input.EndDay)
+            {
+                return BadRequest(new ResponseDTO(400, "Start day must be less than end day"));
+            }
+
+            Class classInput = _mapper.Map<Class>(input);
+            int rs = await _classService.CreateNewClass(classInput);
+            if (rs == 0 || rs == -1)
+            {
+                return BadRequest(new ResponseDTO(400, "Failed to send request"));
+            }
+
+            return Created("", new ResponseDTO(201, "Create class successfully"));
+        }
+
         [HttpGet("{classId:int}")]
         public async Task<IActionResult> GetClass(int classId)
         {
@@ -127,7 +179,27 @@ namespace examedu.Controllers
             //var result = _mapper.Map<ClassResponse>(basicInfor);
 
             return Ok(classResponse);
-            
+
+        }
+        
+        [HttpPut("update/basic_infor")]
+        public async Task<ActionResult> UpdateClassBasicInfor([FromBody] ClassBasicInforInput input)
+        {
+            if (await _classService.IsClassExist(input.ClassId) == false)
+            {
+                return BadRequest(new ResponseDTO(400, "Class not found"));
+            }
+
+            Class classUpdated = _mapper.Map<Class>(input);
+
+            int status = await _classService.UpdateClassBasicInfor(classUpdated);
+
+            if (status == 1)
+            {
+                return Ok(new ResponseDTO(200, "Class successfully updated"));
+            }
+
+            return BadRequest(new ResponseDTO(400, "Error when update class"));
         }
     }
 }

@@ -57,6 +57,12 @@ namespace examedu.Controllers
             examRoomInfor.RoomId = examInfor.Room;
             return Ok(examRoomInfor);
         }
+        [HttpPost("startRoom")]
+        public async Task<IActionResult> StartRoom(ExamRoomInfor examRoomInfor)
+        {
+            await _notifyHub.Clients.Group(examRoomInfor.ExamId.ToString()).SendAsync("ForceJoinRoom");
+            return Ok();
+        }
         
     }
 }

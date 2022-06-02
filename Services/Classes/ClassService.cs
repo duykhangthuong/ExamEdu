@@ -57,17 +57,50 @@ namespace examedu.Services.Classes
         /// <summary>
         /// Get all classes in database (by academic department)
         /// </summary>
-        public async Task<Tuple<int, IEnumerable<Class>>> GetAllClasses( PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<Class>>> GetAllClasses(PaginationParameter paginationParameter)
         {
             // Get all class in database
             var classes = await _db.Classes.Where(c => c.DeactivatedAt == null).ToListAsync();
             return Tuple.Create(classes.Count, classes.GetPage(paginationParameter));
         }
 
+        public async Task<bool> IsClassNameExist(string className)
+        {
+            return await _db.Classes.AnyAsync(c => c.ClassName.Equals(className) && c.DeactivatedAt == null);
+        }
+
+        public async Task<int> CreateNewClass(Class classInput)
+        {
+            int rowInserted = 0;
+            try
+            {
+                _db.Classes.Add(classInput);
+                rowInserted = await _db.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                rowInserted = -1;
+            }
+            return rowInserted;
+        }
 
         public async Task<bool> IsClassExist(int classId)
         {
             return await _db.Classes.Where(s => s.ClassId == classId && s.DeactivatedAt == null).AnyAsync();
+        }
+
+        public async Task<int> UpdateClassBasicInfor(Class classUpdated)
+        {
+            _db.Classes.Attach(classUpdated);
+            var entry = _db.Entry(classUpdated);
+
+            entry.Property(e => e.ClassName).IsModified = true;
+            entry.Property(e => e.StartDay).IsModified = true;
+            entry.Property(e => e.EndDay).IsModified = true;
+
+            int result = await _db.SaveChangesAsync();
+
+            return result;
         }
     }
 }
