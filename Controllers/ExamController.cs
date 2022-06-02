@@ -212,5 +212,16 @@ namespace ExamEdu.Controllers
             }
             return BadRequest(new ResponseDTO(400, "Error when update exam"));
         }
+
+        [HttpGet("update-exam-info/{examId:int}")]
+        public async Task<ActionResult<UpdateExamInfoResponse>> GetExamInfoToUpdate(int examId)
+        {
+            var exam = await _examService.GetUpdateExam(examId);
+            if (exam == null)
+            {
+                return NotFound(new ResponseDTO(404, "Exam not found"));
+            }
+            return Ok(_mapper.Map<UpdateExamInfoResponse>(exam));
+        }
     }
 }

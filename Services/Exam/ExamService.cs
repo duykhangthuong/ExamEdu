@@ -526,5 +526,12 @@ namespace ExamEdu.Services
             int result = await _db.SaveChangesAsync();
             return result;
         }
+
+        public async Task<Exam> GetUpdateExam(int examId)
+        {
+            Exam exam = await _db.Exams.Where(c => c.ExamId == examId).FirstOrDefaultAsync();
+
+            return exam;
+        }
     }
 }
