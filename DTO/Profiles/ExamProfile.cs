@@ -32,6 +32,7 @@ namespace ExamEdu.DTO.Profiles
             CreateMap<UpdateExamInfoInput, Exam>();
             //Mapping for update exam info response
             CreateMap<Exam, UpdateExamInfoResponse>();
+            CreateMap<Exam, GetAllExam>();
                 
         }
 

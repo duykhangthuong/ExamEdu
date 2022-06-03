@@ -213,6 +213,19 @@ namespace ExamEdu.Controllers
             return BadRequest(new ResponseDTO(400, "Error when update exam"));
         }
 
+        [HttpGet("all")]
+        public async Task<ActionResult> GetAllExam( [FromQuery] PaginationParameter paginationParameter)
+        {
+            (int totalRecord, IEnumerable<Exam> allExam) = await _examService.GetAllExam(paginationParameter);
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "Exam not found"));
+            }
+            IEnumerable<GetAllExam> allExamResponse = _mapper.Map<IEnumerable<GetAllExam>>(allExam);
+
+            return Ok(new PaginationResponse<IEnumerable<GetAllExam>>(totalRecord, allExamResponse));
+        }
+
         [HttpGet("update-exam-info/{examId:int}")]
         public async Task<ActionResult<UpdateExamInfoResponse>> GetExamInfoToUpdate(int examId)
         {

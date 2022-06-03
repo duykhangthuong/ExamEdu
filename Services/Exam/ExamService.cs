@@ -534,5 +534,30 @@ namespace ExamEdu.Services
 
             return exam;
         }
+
+        public async Task<Tuple<int, IEnumerable<Exam>>> GetAllExam(PaginationParameter paginationParameter)
+        {
+            var queryResult = from e in _db.Exams
+                         join m in _db.Modules on e.ModuleId equals m.ModuleId
+                              orderby e.ExamDay descending
+                              select new Exam
+                         {
+                             ExamId = e.ExamId,
+                             ExamName = e.ExamName,
+                             ExamDay = e.ExamDay,
+                             Module = new Module
+                             {
+                                 ModuleId = e.ModuleId,
+                                 ModuleCode = m.ModuleCode,
+                                 ModuleName = m.ModuleName,
+                             },
+                         };
+
+            var exams = await queryResult.ToListAsync();
+
+            var totalCount = exams.Count;
+
+            return new Tuple<int, IEnumerable<Exam>>(totalCount, exams.GetPage(paginationParameter));
+        }
     }
 }
