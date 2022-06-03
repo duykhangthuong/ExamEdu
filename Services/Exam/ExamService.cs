@@ -503,6 +503,7 @@ namespace ExamEdu.Services
             entry.Property(e => e.ModuleId).IsModified = true;
             entry.Property(e => e.ProctorId).IsModified = true;
             entry.Property(e => e.SupervisorId).IsModified = true;
+            entry.Property(e => e.isFinalExam).IsModified = true;
 
             int result = await _db.SaveChangesAsync();
 

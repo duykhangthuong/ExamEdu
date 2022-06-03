@@ -112,6 +112,7 @@ namespace ExamEdu
             services.AddScoped<IClassModuleService, ClassModuleService>();
             services.AddScoped<IClassService, ClassService>();
             services.AddScoped<ICacheProvider,CacheProvider>();
+            services.AddScoped<IAcademicDepartmentService, AcademicDepartmentService>();
 
             services.AddSignalR();
 
