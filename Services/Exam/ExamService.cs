@@ -338,7 +338,7 @@ namespace ExamEdu.Services
             return _db.Exams.Where(e => e.ExamId == examId).Select(e => e.isFinalExam).FirstOrDefault();
         }
 
-        public async Task<Tuple<int, IEnumerable<Exam>>> GetExamsByClassModuleId(int classModuleId, PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<Exam>>> GetExamsByClassModuleId(int classModuleId, int moduleId, PaginationParameter paginationParameter)
         {
             // var exams = from cm in _db.ClassModules
             //             join m in _db.Modules on cm.ModuleId equals m.ModuleId
@@ -357,7 +357,7 @@ namespace ExamEdu.Services
                         join s in _db.Students on cms.StudentId equals s.StudentId
                         join sei in _db.StudentExamInfos on s.StudentId equals sei.StudentId
                         join e in _db.Exams on sei.ExamId equals e.ExamId
-                        where cm.ClassModuleId == classModuleId
+                        where cm.ClassModuleId == classModuleId && e.ModuleId == moduleId
                         orderby e.ExamDay descending
                         select e;
 

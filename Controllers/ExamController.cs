@@ -111,10 +111,10 @@ namespace ExamEdu.Controllers
             return Ok(_mapper.Map<ExamResponse>(exam));
         }
 
-        [HttpGet("progressExam/{classModuleId:int}")]
-        public async Task<IActionResult> GetProgressExam(int classModuleId, [FromQuery] PaginationParameter paginationParameter)
+        [HttpGet("progressExam/{classModuleId:int}/{moduleId:int}")]
+        public async Task<IActionResult> GetProgressExam(int classModuleId, int moduleId, [FromQuery] PaginationParameter paginationParameter)
         {
-            (int totalRecord, IEnumerable<Exam> progressExams) = await _examService.GetExamsByClassModuleId(classModuleId, paginationParameter);
+            (int totalRecord, IEnumerable<Exam> progressExams) = await _examService.GetExamsByClassModuleId(classModuleId, moduleId, paginationParameter);
             if (totalRecord == 0)
             {
                 return NotFound(new ResponseDTO(404, "Exam not found"));
