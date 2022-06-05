@@ -31,5 +31,8 @@ namespace ExamEdu.Services
         Task<int> UpdateExam(Exam exam);
         Task<Exam> GetUpdateExam(int examId);
         Task<Tuple<int, IEnumerable<Exam>>> GetAllExam(PaginationParameter paginationParameter);
+        bool IsCancelled (int examId);
+        bool IsExist(int examId);
+        Task<int> CancelExam (int examId);
     }
 }

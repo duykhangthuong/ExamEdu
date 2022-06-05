@@ -187,10 +187,10 @@ namespace ExamEdu.Controllers
             return Ok(new PaginationResponse<IEnumerable<StudentMarkResponse>>(totalRecord, studentMarkResponse));
         }
         [HttpGet("result/report/{examId:int}/{classModuleId:int}")]
-        public async Task<ActionResult> ExportExamMarkReport(int examId,int classModuleId)
+        public async Task<ActionResult> ExportExamMarkReport(int examId, int classModuleId)
         {
-            var studentListMark= await _examService.GetResultExamListByExamId(examId);
-            if(studentListMark.Count()==0){
+            var studentListMark = await _examService.GetResultExamListByExamId(examId);
+            if (studentListMark.Count() == 0) {
                 return NotFound(new ResponseDTO(404, "There is no student taking this exam "));
             }
             var stream = await _examService.GenerateExamMarkReport(examId, classModuleId);
@@ -214,7 +214,7 @@ namespace ExamEdu.Controllers
         }
 
         [HttpGet("all")]
-        public async Task<ActionResult> GetAllExam( [FromQuery] PaginationParameter paginationParameter)
+        public async Task<ActionResult> GetAllExam([FromQuery] PaginationParameter paginationParameter)
         {
             (int totalRecord, IEnumerable<Exam> allExam) = await _examService.GetAllExam(paginationParameter);
             if (totalRecord == 0)
@@ -235,6 +235,30 @@ namespace ExamEdu.Controllers
                 return NotFound(new ResponseDTO(404, "Exam not found"));
             }
             return Ok(_mapper.Map<UpdateExamInfoResponse>(exam));
+        }
+
+        [HttpPut("cancel/{examId:int}")]
+        public async Task<ActionResult> CancelExam(int examId)
+        {
+            bool isCancelled = _examService.IsCancelled(examId);
+            bool isExist = _examService.IsExist(examId);
+            if (isCancelled || isExist == false)
+            {
+                return NotFound(new ResponseDTO(404, "This exam is already cancelled or is not found"));
+            }
+
+            int status = await _examService.CancelExam(examId);
+
+            if (status == 1)
+            {
+                return Ok(new ResponseDTO(200, "Exam successfully cancelled"));
+            }
+            else if(status == -1)
+            {
+                return NotFound(new ResponseDTO(404, "This exam is already done"));
+            }
+            return BadRequest(new ResponseDTO(400, "Error when cancel exam"));
+
         }
     }
 }

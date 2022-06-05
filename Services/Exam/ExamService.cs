@@ -559,5 +559,33 @@ namespace ExamEdu.Services
 
             return new Tuple<int, IEnumerable<Exam>>(totalCount, exams.GetPage(paginationParameter));
         }
+
+        public bool IsCancelled(int examId)
+        {
+            return _db.Exams.Where(e => e.ExamId == examId && e.IsCancelled == true).Any();
+        }
+
+        public bool IsExist(int examId)
+        {
+            return  _db.Exams.Where(s => s.ExamId == examId && s.IsCancelled == false).Any();
+        }
+
+        public async Task<int> CancelExam(int examId)
+        {
+            var examFound = await _db.Exams.Where(e => e.ExamId == examId).FirstOrDefaultAsync();
+            
+            if (examFound == null)
+            {
+                return 0;
+            }
+            //check if the exam is over or in the future
+            if (examFound.ExamDay.CompareTo(DateTime.Now) < 0)
+            {
+                return -1;
+            }
+            examFound.IsCancelled = true;
+            int result = await _db.SaveChangesAsync();
+            return result;
+        }
     }
 }
