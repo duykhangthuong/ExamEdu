@@ -38,7 +38,7 @@ namespace BackEnd.Services
         /// <returns></returns>
         public async Task<IEnumerable<Teacher>> GetAllTeacherIdAndName()
         {
-            return await _dataContext.Teachers.Where(t => t.DeactivatedAt == null).Select(t => new Teacher { TeacherId = t.TeacherId, Fullname = t.Fullname }).ToListAsync();
+            return await _dataContext.Teachers.Where(t => t.DeactivatedAt == null).Select(t => new Teacher { TeacherId = t.TeacherId, Fullname = t.Fullname,Email=t.Email }).ToListAsync();
         }
 
         public async Task<bool> IsHeadOfDepartment(int teacherId)

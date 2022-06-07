@@ -90,6 +90,7 @@ namespace ExamEdu.Services
                          select new ClassModule
                          {
                              ClassModuleId = cm.ClassModuleId,
+                             ModuleId = m.ModuleId,
                              Module = new Module
                              {
                                  ModuleCode = m.ModuleCode,
@@ -124,5 +125,72 @@ namespace ExamEdu.Services
 
             return Tuple.Create(classModules.Count, classModules.GetPage(paginationParameter));
         }
+
+        public async Task<ClassModule> GetClassModuleAndStudent(int classId, int moduleId)
+        {
+            // get class module info from classId and moduleId include student list and teacher info
+
+            var queryResult = from cm in _db.ClassModules
+                              join c in _db.Classes on cm.ClassId equals c.ClassId
+                              join m in _db.Modules on cm.ModuleId equals m.ModuleId
+                              join t in _db.Teachers on cm.TeacherId equals t.TeacherId
+                              join cms in _db.Class_Module_Students on cm.ClassModuleId equals cms.ClassModuleId
+                              join s in _db.Students on cms.StudentId equals s.StudentId
+                              where cm.ClassId == classId && cm.ModuleId == moduleId
+                              select new ClassModule
+                              {
+                                  ClassModuleId = cm.ClassModuleId,
+                                  Class = new Class
+                                  {
+                                      ClassId = c.ClassId,
+                                      ClassName = c.ClassName
+                                  },
+                                  Module = new Module
+                                  {
+                                      ModuleId = m.ModuleId,
+                                      ModuleCode = m.ModuleCode,
+                                      ModuleName = m.ModuleName
+                                  },
+                                  Teacher = new Teacher
+                                  {
+                                      TeacherId = t.TeacherId,
+                                      Fullname = t.Fullname,
+                                      Email = t.Email
+                                  },
+                                  Students = (from cms in _db.Class_Module_Students
+                                              join s in _db.Students on cms.StudentId equals s.StudentId
+                                              where cms.ClassModuleId == cm.ClassModuleId
+                                              select new Student
+                                              {
+                                                  StudentId = s.StudentId,
+                                                  Fullname = s.Fullname,
+                                                  Email = s.Email
+                                              }).ToList()
+
+                              };
+            var classModule = await queryResult.FirstOrDefaultAsync();
+            return classModule;
+        }
+        public async Task<int> UpdateStudentListAndTeacher(int classModuleId, int teacherId, List<int> studentIds)
+        {
+            var classModule = await _db.ClassModules.FindAsync(classModuleId);
+            if (classModule == null)
+            {
+                return 0;
+            }
+            classModule.TeacherId = teacherId;
+            _db.Class_Module_Students.RemoveRange(_db.Class_Module_Students.Where(x => x.ClassModuleId == classModuleId));
+            _db.Class_Module_Students.AddRange(studentIds.Select(x => new Class_Module_Student
+            {
+                ClassModuleId = classModuleId,
+                StudentId = x
+            }));
+            return await _db.SaveChangesAsync();
+        }
+        public async Task<bool> IsClassModuleExist(int classModuleId)
+        {
+            return await _db.ClassModules.Where(s => s.ClassModuleId == classModuleId).AnyAsync();
+        }
     }
+
 }

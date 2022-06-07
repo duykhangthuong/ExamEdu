@@ -159,6 +159,7 @@ namespace examedu.Controllers
                 ClassModulesList.Add(new ClassModuleResponse2
                 {
                     ClassModuleId = classModule.ClassModuleId,
+                    ModuleId = classModule.ModuleId,
                     ModuleCode = classModule.Module.ModuleCode,
                     ModuleName = classModule.Module.ModuleName,
                     TeacherName = classModule.Teacher.Fullname

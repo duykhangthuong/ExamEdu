@@ -14,6 +14,7 @@ namespace ExamEdu.DTO.Profiles
             CreateMap<ClassModule, ClassModuleClassResponse>();
             CreateMap<Module, ModuleResponse>();
             CreateMap<Class, ClassNameResponse>();
+            CreateMap<ClassModule, ClassModuleStudentResponse>();
         }
     }
 }

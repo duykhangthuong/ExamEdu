@@ -90,5 +90,21 @@ namespace examedu.Controllers
             IEnumerable<StudentResponse> studentsResponses = _mapper.Map<IEnumerable<StudentResponse>>(students);
             return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
         }
+        /// <summary>
+        /// Get student list not in classModule (to add student to classModule)
+        /// </summary>
+        /// <param name="classModuleId"></param>
+        /// <param name="paginationParameter"></param>
+        /// <returns></returns>
+        [HttpGet("class/{classId:int}/module/{moduleId:int}/free")]
+        public async Task<IActionResult> GetStudentsNotInClassModule(int classId,int moduleId, [FromQuery] PaginationParameter paginationParameter){
+            (int totalRecord, IEnumerable<Student> students) = await _studentService.GetStudentsNotInClassModule( classId, moduleId, paginationParameter);
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "No student found"));
+            }
+            IEnumerable<StudentResponse> studentsResponses = _mapper.Map<IEnumerable<StudentResponse>>(students);
+            return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
+        }
     }
 }

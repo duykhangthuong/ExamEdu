@@ -11,6 +11,7 @@ namespace ExamEdu.DTO.ClassModuleDTO
         //public Teacher Teacher { get; set; }
 
         public int ClassModuleId { get; set; }
+        public int ModuleId { get; set; }
         public string ModuleCode { get; set; }
         public string ModuleName { get; set; }
         public string TeacherName { get; set; }

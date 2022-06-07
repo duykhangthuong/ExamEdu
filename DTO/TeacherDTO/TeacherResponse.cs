@@ -9,5 +9,6 @@ namespace BackEnd.DTO.TeacherDTO
     {
         public int TeacherId { get; set; }
         public string Fullname { get; set; }
+        public string Email { get; set; }
     }
 }

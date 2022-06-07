@@ -18,7 +18,7 @@ namespace ExamEdu.DTO.PaginationDTO
                 if (value != null)
                 {
                     value.Trim();
-                    _searchName = value.Replace(" ", ":*|") + ":*";
+                    _searchName = value;
                 }
                 else _searchName = "";
             }

@@ -38,7 +38,7 @@ namespace examedu.Services
                 return null;
             }
 
-            List<StudentExamInfo> studentExamInforList = await _dataContext.StudentExamInfos.Where(s => s.StudentId == studentID 
+            List<StudentExamInfo> studentExamInforList = await _dataContext.StudentExamInfos.Where(s => s.StudentId == studentID
             && s.FinishAt != null).ToListAsync();
             if (studentExamInforList == null)
             {
@@ -135,6 +135,30 @@ namespace examedu.Services
                                   StudentId = student.StudentId,
                                   Fullname = student.Fullname
                               };
+            var students = await queryResult.ToListAsync();
+
+            return Tuple.Create(students.Count, students.GetPage(paginationParameter));
+        }
+
+        /// <summary>
+        /// Get student list not in a class module
+        /// </summary>
+        /// <param name="classModuleId">The classmodule's id</param>
+        /// <param name="paginationParameter">Pagination parameters</param>
+        public async Task<Tuple<int, IEnumerable<Student>>> GetStudentsNotInClassModule(int classId,int moduleId, PaginationParameter paginationParameter)
+        {
+            var queryResult = (from student in _dataContext.Students
+                               join cms in _dataContext.Class_Module_Students on student.StudentId equals cms.StudentId
+                               join cm in _dataContext.ClassModules on cms.ClassModuleId equals cm.ClassModuleId
+                               where cm.ClassId != classId && cm.ModuleId != moduleId 
+                               && student.DeactivatedAt == null
+                               && student.Fullname.ToUpper().Contains(paginationParameter.SearchName.ToUpper())
+                               select new Student
+                               {
+                                   StudentId = student.StudentId,
+                                   Fullname = student.Fullname,
+                                   Email = student.Email
+                               }).Distinct();
             var students = await queryResult.ToListAsync();
 
             return Tuple.Create(students.Count, students.GetPage(paginationParameter));
