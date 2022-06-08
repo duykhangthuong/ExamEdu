@@ -14,6 +14,7 @@ namespace examedu.Services
     {
         Task<List<QuestionResponse>> getQuestionByModuleLevel(int moduleID, int levelID, bool isFinalExam);
         Task<List<QuestionAnswerResponse>> GetListQuestionAnswerByListQuestionId(List<int> questionIdList, int examId, int examCode, bool isFinalExam);
+        Task<List<QuestionAnswerForViewingResponse>> GetListQuestionAnswerByListQuestionIdForExamDetail(List<int> questionIdList, bool isFinalExam);
         Task<int> InsertNewRequestAddQuestions(AddQuestionRequest addQuestionRequest);
         Task<Tuple<int, IEnumerable<AddQuestionRequest>>> GetAllRequestAddQuestionBank(PaginationParameter paginationParameter);
         bool IsFinalExamBank(int addQuestionRequestId);

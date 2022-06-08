@@ -22,6 +22,14 @@ namespace examedu.DTO.Profiles
             CreateMap<FEQuestion, QuestionAnswerResponse>();
             CreateMap<Answer, AnswerContentResponse>();
             CreateMap<FEAnswer, AnswerContentResponse>();
+
+            CreateMap<Question, QuestionAnswerForViewingResponse>()
+                    .ForMember(dest=>dest.LevelName, opt=>opt.MapFrom(src=>src.Level.LevelName));
+            CreateMap<FEQuestion, QuestionAnswerForViewingResponse>()
+                    .ForMember(dest=>dest.LevelName, opt=>opt.MapFrom(src=>src.Level.LevelName));
+            CreateMap<Answer, AnswerContentForViewingResponse>();
+            CreateMap<FEAnswer, AnswerContentForViewingResponse>();
+
             CreateMap<RequestAddQuestionInput, AddQuestionRequest>()
                     .ForMember(dest => dest.Questions, opt =>
                     {

@@ -114,6 +114,58 @@ namespace examedu.Services
             return questionAnswerList;
         }
 
+        public async Task<List<QuestionAnswerForViewingResponse>> GetListQuestionAnswerByListQuestionIdForExamDetail(List<int> questionIdList, bool isFinalExam)
+        {
+            List<QuestionAnswerForViewingResponse> questionAnswerList = new List<QuestionAnswerForViewingResponse>();
+            if (isFinalExam)
+            {
+                foreach (var questionId in questionIdList)
+                {
+                    FEQuestion question = await _dataContext.FEQuestions
+                                                .Where(q => q.FEQuestionId == questionId && q.ApproveAt != null)
+                                                .Select(q => new FEQuestion
+                                                {
+                                                    FEQuestionId = q.FEQuestionId,
+                                                    QuestionContent = q.QuestionContent,
+                                                    QuestionImageURL = q.QuestionImageURL,
+                                                    Level = q.Level
+                                                })
+                                                .FirstOrDefaultAsync();
+                    var questionAnswerResponse = _mapper.Map<QuestionAnswerForViewingResponse>(question);
+                    List<FEAnswer> answerList = await _dataContext.FEAnswers.Where(ans => ans.FEAnswerId == question.FEQuestionId).ToListAsync();
+                    foreach (var answer in answerList)
+                    {
+                        questionAnswerResponse.Answers.Add(_mapper.Map<AnswerContentForViewingResponse>(answer));
+                    }
+                    questionAnswerList.Add(questionAnswerResponse);
+                }
+            }
+            else
+            {
+                foreach (int questionId in questionIdList)
+                {
+                    Question question = await _dataContext.Questions
+                                            .Where(q => q.QuestionId == questionId && q.ApproveAt != null)
+                                            .Select(q => new Question
+                                            {
+                                                QuestionId = q.QuestionId,
+                                                QuestionContent = q.QuestionContent,
+                                                QuestionImageURL = q.QuestionImageURL,
+                                                Level = q.Level
+                                            })
+                                            .FirstOrDefaultAsync();
+                    var questionAnswerResponse = _mapper.Map<QuestionAnswerForViewingResponse>(question);
+                    List<Answer> answerList = await _dataContext.Answers.Where(ans => ans.QuestionId == question.QuestionId).ToListAsync();
+                    foreach (var answer in answerList)
+                    {
+                        questionAnswerResponse.Answers.Add(_mapper.Map<AnswerContentForViewingResponse>(answer));
+                    }
+                    questionAnswerList.Add(questionAnswerResponse);
+                }
+            }
+            return questionAnswerList;
+        }
+
         /// <summary>
         /// Create new request to add questions to bank
         /// </summary>
@@ -172,7 +224,7 @@ namespace examedu.Services
                                                 .OrderByDescending(r => r.CreatedAt)
                                                 .ToListAsync();
 
-            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList,paginationParameter));
+            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList, paginationParameter));
         }
 
         /// <summary>
@@ -354,7 +406,7 @@ namespace examedu.Services
                                                 .OrderByDescending(r => r.CreatedAt)
                                                 .ToListAsync();
 
-            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList,paginationParameter));
+            return Tuple.Create(requestList.Count(), PaginationHelper.GetPage(requestList, paginationParameter));
         }
 
     }

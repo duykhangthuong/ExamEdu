@@ -12,7 +12,6 @@ namespace BackEnd.DTO.ExamQuestionsDTO
         public int ModuleId { get; set; }
         public string ModuleCode { get; set; }
         public int DurationInMinute { get; set; }
-        //  public int ExamCode { get; set; } //xoa sau
         public List<QuestionAnswerResponse> QuestionAnswer { get; set; }
 
        

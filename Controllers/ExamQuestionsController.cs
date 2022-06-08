@@ -72,8 +72,25 @@ namespace BackEnd.Controllers
             }
             ExamQuestionsResponse examQuestionsResponse = _mapper.Map<ExamQuestionsResponse>(exam);
             examQuestionsResponse.QuestionAnswer = await _questionService.GetListQuestionAnswerByListQuestionId(questIdList, examId, examCode, isFinalExam);
-            // examQuestionsResponse.ExamCode = examCode;
             return Ok(examQuestionsResponse);
+        }
+
+        [HttpGet("ExamDetail/{examId:int}")]
+        public async Task<ActionResult<List<QuestionAnswerForViewingResponse>>> GetExamQuestionsForExamDetail(int examId)
+        {
+            if (_examService.IsExist(examId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Exam does not exist."));
+            }
+            bool isFinalExam = _examService.IsFinalExam(examId);
+            List<int> questIdList = new List<int>();
+            questIdList = await _examQuestionsService.GetListQuestionIdByExamIdAndExamCode(examId, 1, isFinalExam);
+            if (questIdList.Count <= 0)
+            {
+                return NotFound(new ResponseDTO(404, "This exam does not have any question."));
+            }
+            List<QuestionAnswerForViewingResponse> questionAnswerResponse = await _questionService.GetListQuestionAnswerByListQuestionIdForExamDetail(questIdList, isFinalExam);
+            return Ok(questionAnswerResponse);
         }
     }
 }

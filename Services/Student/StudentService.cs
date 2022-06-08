@@ -140,17 +140,35 @@ namespace examedu.Services
             return Tuple.Create(students.Count, students.GetPage(paginationParameter));
         }
 
+        public async Task<Tuple<int, IEnumerable<Student>>> GetAllStudents(PaginationParameter paginationParameter)
+        {
+            string searchName = paginationParameter.SearchName;
+            searchName = searchName.Replace(":*|", " ").Replace(":*", "");
+
+            IQueryable<Student> students = _dataContext.Students;
+            if (paginationParameter.SearchName != "")
+            {
+                students = students.Where(s => s.Fullname.ToLower().Contains(searchName.ToLower()));
+            }
+
+            IEnumerable<Student> studentList = await students
+                                                    .Where(s => s.DeactivatedAt == null)
+                                                    .OrderBy(s => s.Fullname)
+                                                    .ToListAsync();
+            return Tuple.Create(studentList.Count(), PaginationHelper.GetPage(studentList, paginationParameter));
+        }
+        
         /// <summary>
         /// Get student list not in a class module
         /// </summary>
         /// <param name="classModuleId">The classmodule's id</param>
         /// <param name="paginationParameter">Pagination parameters</param>
-        public async Task<Tuple<int, IEnumerable<Student>>> GetStudentsNotInClassModule(int classId,int moduleId, PaginationParameter paginationParameter)
+        public async Task<Tuple<int, IEnumerable<Student>>> GetStudentsNotInClassModule(int classId, int moduleId, PaginationParameter paginationParameter)
         {
             var queryResult = (from student in _dataContext.Students
                                join cms in _dataContext.Class_Module_Students on student.StudentId equals cms.StudentId
                                join cm in _dataContext.ClassModules on cms.ClassModuleId equals cm.ClassModuleId
-                               where cm.ClassId != classId && cm.ModuleId != moduleId 
+                               where cm.ClassId != classId && cm.ModuleId != moduleId
                                && student.DeactivatedAt == null
                                && student.Fullname.ToUpper().Contains(paginationParameter.SearchName.ToUpper())
                                select new Student

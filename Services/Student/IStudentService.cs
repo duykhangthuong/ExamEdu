@@ -16,6 +16,7 @@ namespace examedu.Services
         Task<Tuple<int, IEnumerable<Student>>> GetStudents(int teacherId, int moduleId, PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Student>>> GetAllStudents(int moduleId, PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Student>>> GetStudents(int classModuleId, PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<Student>>> GetAllStudents(PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Student>>> GetStudentsNotInClassModule(int classId,int moduleId, PaginationParameter paginationParameter);
     }
 }
