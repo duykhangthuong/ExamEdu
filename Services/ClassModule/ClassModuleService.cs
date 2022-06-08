@@ -191,6 +191,25 @@ namespace ExamEdu.Services
         {
             return await _db.ClassModules.Where(s => s.ClassModuleId == classModuleId).AnyAsync();
         }
+
+        public async Task<Tuple<int, IEnumerable<ClassModule>>> GetClassModules(int moduleId, PaginationParameter paginationParameter)
+        {
+            var queryResult = from cm in _db.ClassModules
+                              join c in _db.Classes on cm.ClassId equals c.ClassId
+                              where cm.ModuleId == moduleId
+                              select new ClassModule
+                              {
+                                  ClassModuleId = cm.ClassModuleId,
+                                  Class = new Class
+                                  {
+                                      ClassId = c.ClassId,
+                                      ClassName = c.ClassName
+                                  }
+                              };
+            var classModules = await queryResult.ToListAsync();
+
+            return Tuple.Create(classModules.Count, classModules.GetPage(paginationParameter));
+        }
     }
 
 }

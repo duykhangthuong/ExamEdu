@@ -12,6 +12,7 @@ namespace ExamEdu.Services
         public Task<Tuple<int, IEnumerable<ClassModule>>> GetClassModuleByTeacherId(int teacherId, PaginationParameter paginationParameter);
         public Task<ClassModule> GetClassModuleInfo(int classModuleId);
         public Task<Tuple<int, IEnumerable<ClassModule>>> GetClassModules(int teacherId, int moduleId, PaginationParameter paginationParameter);
+        public Task<Tuple<int, IEnumerable<ClassModule>>> GetClassModules(int moduleId, PaginationParameter paginationParameter);
         Task<List<ClassModule>> GetClassModuleList(int classId);
         public Task<ClassModule> GetClassModuleAndStudent(int classId, int moduleId);
         Task<int> UpdateStudentListAndTeacher(int classModuleId, int teacherId, List<int> studentIds);

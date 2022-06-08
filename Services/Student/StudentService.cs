@@ -163,5 +163,25 @@ namespace examedu.Services
 
             return Tuple.Create(students.Count, students.GetPage(paginationParameter));
         }
+
+        public async Task<Tuple<int, IEnumerable<Student>>> GetAllStudents(int moduleId, PaginationParameter paginationParameter)
+        {
+            var queryResult = from student in _dataContext.Students
+                              join cms in _dataContext.Class_Module_Students on student.StudentId equals cms.StudentId
+                              join cm in _dataContext.ClassModules on cms.ClassModuleId equals cm.ClassModuleId
+                              where cm.ModuleId == moduleId && student.DeactivatedAt == null
+                              select new Student
+                              {
+                                  StudentId = student.StudentId,
+                                  Fullname = student.Fullname
+                              };
+            // var students = await queryResult.ToListAsync();
+
+            //var distinctStudents = students.Distinct().ToList();
+
+            var distinctStudents = queryResult.Distinct().ToList();
+
+            return Tuple.Create(distinctStudents.Count, distinctStudents.GetPage(paginationParameter));
+        }
     }
 }

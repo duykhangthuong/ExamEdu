@@ -75,6 +75,27 @@ namespace examedu.Controllers
 
             return Ok(new PaginationResponse<IEnumerable<ClassModuleClassResponse>>(classModule.Item1, classModuleResponse));
         }
+
+        [HttpGet("list/{moduleId:int}")]
+        public async Task<IActionResult> GetClassModules(int moduleId, [FromQuery] PaginationParameter paginationParameter)
+        {
+            //If module does not exist return bad request
+            if (await _moduleService.getModuleByID(moduleId) == null)
+            {
+                return BadRequest(new ResponseDTO(400, "Module does not exist"));
+            }
+
+            var classModule = await _classModuleService.GetClassModules(moduleId, paginationParameter);
+            if (classModule.Item1 == 0)
+            {
+                return NotFound(new ResponseDTO(404, "No class module found"));
+            }
+
+            var classModuleResponse = _mapper.Map<IEnumerable<ClassModuleClassResponse>>(classModule.Item2);
+
+            return Ok(new PaginationResponse<IEnumerable<ClassModuleClassResponse>>(classModule.Item1, classModuleResponse));
+        }
+
         [HttpGet("student/{classId:int}/{moduleId:int}")]
         public async Task<IActionResult> GetClassModulesWithStudent(int classId, int moduleId)
         {

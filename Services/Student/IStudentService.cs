@@ -14,6 +14,7 @@ namespace examedu.Services
         bool CheckStudentExist(int id);
         Task<Student> GetStudentByEmail(string email);
         Task<Tuple<int, IEnumerable<Student>>> GetStudents(int teacherId, int moduleId, PaginationParameter paginationParameter);
+        Task<Tuple<int, IEnumerable<Student>>> GetAllStudents(int moduleId, PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Student>>> GetStudents(int classModuleId, PaginationParameter paginationParameter);
         Task<Tuple<int, IEnumerable<Student>>> GetStudentsNotInClassModule(int classId,int moduleId, PaginationParameter paginationParameter);
     }

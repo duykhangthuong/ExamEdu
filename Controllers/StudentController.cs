@@ -78,6 +78,24 @@ namespace examedu.Controllers
             return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
         }
 
+        [HttpGet("list/{moduleId:int}")]
+        public async Task<IActionResult> GetAllStudents(int moduleId, [FromQuery] PaginationParameter paginationParameter)
+        {
+            //If module does not exist return bad request
+            if (await _moduleService.getModuleByID(moduleId) is null)
+            {
+                return BadRequest(new ResponseDTO(400, "Module does not exist"));
+            }
+
+            (int totalRecord, IEnumerable<Student> students) = await _studentService.GetAllStudents(moduleId, paginationParameter);
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "No student found"));
+            }
+            IEnumerable<StudentResponse> studentsResponses = _mapper.Map<IEnumerable<StudentResponse>>(students);
+            return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
+        }
+
         [HttpGet("{classModuleId:int}")]
         public async Task<IActionResult> GetStudents(int classModuleId, [FromQuery] PaginationParameter paginationParameter)
         {
