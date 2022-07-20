@@ -32,6 +32,8 @@ namespace ExamEdu.DB
         public DbSet<StudentAnswer> StudentAnswers { get; set; }
         public DbSet<StudentFEAnswer> StudentFEAnswers { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
+        public DbSet<StudentCheating> StudentCheatings { get; set; }
+        public DbSet<CheatingType> CheatingTypes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -151,7 +153,7 @@ namespace ExamEdu.DB
             // set unique for examId and questionId in examQuestion
             modelBuilder.Entity<Exam_FEQuestion>()
                 .HasIndex(eq => new { eq.ExamId, eq.FEQuestionId, eq.ExamCode })
-                .IsUnique();    
+                .IsUnique();
 
             // connect exam question to student answer
             modelBuilder.Entity<ExamQuestion>()
@@ -188,86 +190,86 @@ namespace ExamEdu.DB
             // set unique for examName in exam
             modelBuilder.Entity<Exam>()
                 .HasIndex(eq => eq.ExamName)
-                .IsUnique();    
+                .IsUnique();
 
             // Connect module to exam
             modelBuilder.Entity<Module>()
                .HasMany(r => r.Exams)
                .WithOne(a => a.Module)
                .HasForeignKey(a => a.ModuleId)
-               .OnDelete(DeleteBehavior.SetNull);    
+               .OnDelete(DeleteBehavior.SetNull);
             // set unique for moduleCode in module
             modelBuilder.Entity<Module>()
                 .HasIndex(eq => eq.ModuleCode)
-                .IsUnique();        
+                .IsUnique();
             // Connect level to question
             modelBuilder.Entity<Level>()
                .HasMany(r => r.Questions)
                .WithOne(a => a.Level)
                .HasForeignKey(a => a.LevelId)
-               .OnDelete(DeleteBehavior.SetNull);    
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect level to question
             modelBuilder.Entity<Level>()
                .HasMany(r => r.FEQuestions)
                .WithOne(a => a.Level)
                .HasForeignKey(a => a.LevelId)
-               .OnDelete(DeleteBehavior.SetNull);     
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect question type to question
             modelBuilder.Entity<QuestionType>()
                .HasMany(r => r.Questions)
                .WithOne(a => a.QuestionType)
                .HasForeignKey(a => a.QuestionTypeId)
-               .OnDelete(DeleteBehavior.SetNull);      
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect question type to question
             modelBuilder.Entity<QuestionType>()
                .HasMany(r => r.FEQuestions)
                .WithOne(a => a.QuestionType)
                .HasForeignKey(a => a.QuestionTypeId)
-               .OnDelete(DeleteBehavior.SetNull);       
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect module to Question
             modelBuilder.Entity<Module>()
                .HasMany(r => r.Questions)
                .WithOne(a => a.Module)
                .HasForeignKey(a => a.ModuleId)
-               .OnDelete(DeleteBehavior.SetNull);   
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect module to Question
             modelBuilder.Entity<Module>()
                .HasMany(r => r.FEQuestions)
                .WithOne(a => a.Module)
                .HasForeignKey(a => a.ModuleId)
-               .OnDelete(DeleteBehavior.SetNull);      
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect question to answer
             modelBuilder.Entity<Question>()
                .HasMany(r => r.Answers)
                .WithOne(a => a.Question)
                .HasForeignKey(a => a.QuestionId)
-               .OnDelete(DeleteBehavior.SetNull); 
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect FE question to FE answer
             modelBuilder.Entity<FEQuestion>()
                .HasMany(r => r.FEAnswers)
                .WithOne(a => a.FEQuestion)
                .HasForeignKey(a => a.FEQuestionId)
-               .OnDelete(DeleteBehavior.SetNull);    
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect student to studentAnswer
             modelBuilder.Entity<Student>()
                .HasMany(r => r.StudentAnswers)
                .WithOne(a => a.Student)
                .HasForeignKey(a => a.StudentId)
-               .OnDelete(DeleteBehavior.SetNull);     
+               .OnDelete(DeleteBehavior.SetNull);
             // Connect student to studentAnswer
             modelBuilder.Entity<Student>()
                .HasMany(r => r.StudentFEAnswers)
                .WithOne(a => a.Student)
                .HasForeignKey(a => a.StudentId)
-               .OnDelete(DeleteBehavior.SetNull); 
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect teacher to exam as proctor
             // modelBuilder.Entity<Teacher>()
@@ -276,9 +278,9 @@ namespace ExamEdu.DB
             //    .HasForeignKey(a => a.ProctorId)
             //    .OnDelete(DeleteBehavior.SetNull);  
             modelBuilder.Entity<Exam>()
-                .HasOne(e=>e.Grader)
-                .WithMany(t=>t.ExamsToGrade)
-                .HasForeignKey(t=>t.GraderId)
+                .HasOne(e => e.Grader)
+                .WithMany(t => t.ExamsToGrade)
+                .HasForeignKey(t => t.GraderId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Connect teacher to exam as grader
@@ -286,37 +288,54 @@ namespace ExamEdu.DB
                .HasMany(r => r.ExamsToGrade)
                .WithOne(a => a.Grader)
                .HasForeignKey(a => a.GraderId)
-               .OnDelete(DeleteBehavior.NoAction);  
+               .OnDelete(DeleteBehavior.NoAction);
 
             // Connect aca to exam as supervisor
             modelBuilder.Entity<AcademicDepartment>()
                .HasMany(r => r.Exams)
                .WithOne(a => a.Supervisor)
                .HasForeignKey(a => a.SupervisorId)
-               .OnDelete(DeleteBehavior.SetNull);  
-               
+               .OnDelete(DeleteBehavior.SetNull);
+
             // Connect class module to exam
             modelBuilder.Entity<Teacher>()
                .HasMany(r => r.ClassModules)
                .WithOne(a => a.Teacher)
                .HasForeignKey(a => a.TeacherId)
-               .OnDelete(DeleteBehavior.SetNull);  
-            
+               .OnDelete(DeleteBehavior.SetNull);
+
             // Connect AddQuestionRequest to teacher (Approver)
             modelBuilder.Entity<Teacher>()
                .HasMany(r => r.AddQuestionApproves)
                .WithOne(a => a.Approver)
                .HasForeignKey(a => a.ApproverId)
-               .OnDelete(DeleteBehavior.SetNull);     
+               .OnDelete(DeleteBehavior.SetNull);
 
             // Connect AddQuestionRequest to teacher (Requester)
             modelBuilder.Entity<Teacher>()
                .HasMany(r => r.AddQuestionRequests)
                .WithOne(a => a.Requester)
                .HasForeignKey(a => a.RequesterId)
-               .OnDelete(DeleteBehavior.SetNull);      
-
-               
+               .OnDelete(DeleteBehavior.SetNull);
+ 
+            // Connect StudentError to ErrorType
+            modelBuilder.Entity<CheatingType>()
+               .HasMany(r => r.StudentCheatings)
+               .WithOne(a => a.CheatingType)
+               .HasForeignKey(a => a.CheatingTypeId)
+               .OnDelete(DeleteBehavior.SetNull);
+            // Connect StudentCheating to Student
+            modelBuilder.Entity<Student>()
+                .HasMany<StudentCheating>(s => s.StudentCheatings)
+                .WithOne(se => se.Student)
+                .HasForeignKey(se => se.StudentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            // Connect StudentCheating to Exam
+            modelBuilder.Entity<Exam>()
+                .HasMany<StudentCheating>(s => s.StudentCheatings)
+                .WithOne(se => se.Exam)
+                .HasForeignKey(se => se.ExamId)
+                .OnDelete(DeleteBehavior.SetNull);    
         }
     }
 }

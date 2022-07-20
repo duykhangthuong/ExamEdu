@@ -3,15 +3,17 @@ using System;
 using ExamEdu.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ExamEdu.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220612080632_ChangeTableNameCheating")]
+    partial class ChangeTableNameCheating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -137,7 +139,7 @@ namespace ExamEdu.Migrations
 
                     b.HasKey("CheatingTypeId");
 
-                    b.ToTable("CheatingTypes");
+                    b.ToTable("CheatingType");
                 });
 
             modelBuilder.Entity("ExamEdu.DB.Models.Class", b =>
@@ -603,7 +605,7 @@ namespace ExamEdu.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("StudentCheatings");
+                    b.ToTable("StudentCheating");
                 });
 
             modelBuilder.Entity("ExamEdu.DB.Models.StudentExamInfo", b =>

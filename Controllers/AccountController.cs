@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.DTO.AccountDTO;
+using BackEnd.Services;
 using examedu.DTO.AccountDTO;
+using examedu.Services;
 using examedu.Services.Account;
+using ExamEdu.DB.Models;
 using ExamEdu.DTO;
 using ExamEdu.DTO.PaginationDTO;
 using Microsoft.AspNetCore.Authorization;
@@ -18,12 +22,19 @@ namespace examedu.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
+        private readonly IStudentService _studentService;
+        private readonly ITeacherService _teacherService;
+        private readonly IAcademicDepartmentService _academicDepartmentService;
+        private readonly IAdministratorService _administratorService;
 
-       
-        public AccountController(IAccountService accountService, IMapper mapper)
+        public AccountController(IAccountService accountService, IMapper mapper, IStudentService studentService, ITeacherService teacherService, IAcademicDepartmentService academicDepartmentService, IAdministratorService administratorService)
         {
             _accountService = accountService;
             _mapper = mapper;
+            _studentService = studentService;
+            _teacherService = teacherService;
+            _academicDepartmentService = academicDepartmentService;
+            _administratorService = administratorService;
         }
 
         /// <summary>
@@ -34,7 +45,7 @@ namespace examedu.Controllers
         [HttpGet("list")]
         public ActionResult<PaginationResponse<IEnumerable<AccountResponse>>> GetAccountList([FromQuery] PaginationParameter paginationParameter)
         {
-            (int totalRecord, IEnumerable<AccountResponse> listAccount) =  _accountService.GetAccountList(paginationParameter);
+            (int totalRecord, IEnumerable<AccountResponse> listAccount) = _accountService.GetAccountList(paginationParameter);
 
             if (totalRecord == 0)
             {
@@ -52,7 +63,7 @@ namespace examedu.Controllers
         [HttpGet("deactivatedList")]
         public ActionResult<PaginationResponse<IEnumerable<AccountResponse>>> GetDeactivatedAccountList([FromQuery] PaginationParameter paginationParameter)
         {
-            (int totalRecord, IEnumerable<AccountResponse> listAccount) =  _accountService.GetDeactivatedAccountList(paginationParameter);
+            (int totalRecord, IEnumerable<AccountResponse> listAccount) = _accountService.GetDeactivatedAccountList(paginationParameter);
 
             if (totalRecord == 0)
             {
@@ -70,19 +81,19 @@ namespace examedu.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateNewAccount([FromBody] AccountInput accountInput)
         {
-            int addResult= await _accountService.InsertNewAccount(accountInput);
-            if(addResult == 0)
+            int addResult = await _accountService.InsertNewAccount(accountInput);
+            if (addResult == 0)
             {
                 return Conflict(new ResponseDTO(409, "The email is existed"));
             }
-            if(addResult ==-1)
+            if (addResult == -1)
             {
                 return BadRequest(new ResponseDTO(400, "Error when add account"));
             }
             return CreatedAtAction(nameof(GetAccountList), new ResponseDTO(201, "Successfully inserted"));
         }
 
-                /// <summary>
+        /// <summary>
         /// Deactivate an account in the db
         /// </summary>
         /// <param name="id">Id of that account</param>
@@ -102,6 +113,48 @@ namespace examedu.Controllers
                 return BadRequest(new ResponseDTO(400, "Deactivate failed"));
             }
             return Ok(new ResponseDTO(200, "Deleted!"));
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<AccountResponse>> GetAccountInforByEmail(string email)
+        {
+            AccountResponse accountResponse = await _accountService.GetAccountInforByEmail(email);
+            if (accountResponse == null)
+            {
+                return NotFound(new ResponseDTO(404, "Account not exist"));
+            }
+            return Ok(accountResponse);
+        }
+
+        [HttpPut("Update")]
+        public async Task<ActionResult> UpdateAccount(int roleId, string currentEmail, [FromBody] UpdateAccountInput accountInput)
+        {
+            var existedAccount = await _accountService.GetAccountInforByEmail(currentEmail);
+            if (existedAccount == null)
+            {
+                return NotFound(new ResponseDTO(404, "Account not exist"));
+            }
+            if (
+                accountInput.Email.ToLower().Equals(existedAccount.Email.ToLower()) &&
+                accountInput.Fullname.ToLower().Equals(existedAccount.Fullname.ToLower())
+            )
+            {
+                return Ok(new ResponseDTO(200, "Update account success"));
+            }
+
+            int rs = await _accountService.UpdateAccount(accountInput, roleId, currentEmail);
+            if (rs == -1)
+            {
+                return NotFound(new ResponseDTO(404, "Account not exist"));
+            }
+            else if (rs == 0)
+            {
+                return BadRequest(new ResponseDTO(400, "Something went wrong. Update account failed"));
+            }
+            else
+            {
+                return Ok(new ResponseDTO(200, "Update account success"));
+            }
         }
     }
 }

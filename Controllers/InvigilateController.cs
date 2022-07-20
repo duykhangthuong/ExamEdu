@@ -63,6 +63,12 @@ namespace examedu.Controllers
             await _notifyHub.Clients.Group(examRoomInfor.ExamId.ToString()).SendAsync("ForceJoinRoom");
             return Ok();
         }
+        [HttpPost("studentDisconnect")]
+        public async Task<IActionResult> StudentDisconnectNotify(ExamRoomInfor examRoomInfor)
+        {
+            await _notifyHub.Clients.Group("teacher"+examRoomInfor.ExamId.ToString()).SendAsync("StudentDisconnect", examRoomInfor.RoomId); //room id la email cua thang disconnect
+            return Ok();
+        }
         
     }
 }

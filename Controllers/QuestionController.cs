@@ -10,9 +10,13 @@ using examedu.Services;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
 using ExamEdu.DTO.PaginationDTO;
+using ExamEdu.DTO.QuestionDTO;
+using ExamEdu.Helper.UploadDownloadFiles;
 using ExamEdu.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace examedu.Controllers
 {
@@ -26,18 +30,20 @@ namespace examedu.Controllers
         private readonly ILevelService _levelService;
         private readonly ITeacherService _teacherService;
         private readonly IMapper _mapper;
-
+        private readonly IImgHelper _imgHelper;
         public QuestionController(IQuestionService questionService,
                                   IModuleService moduleService,
                                   ILevelService levelService,
                                   ITeacherService teacherService,
-                                  IMapper mapper)
+                                  IMapper mapper,
+                                  IImgHelper imgHelper)
         {
             _moduleService = moduleService;
             _levelService = levelService;
             _questionService = questionService;
             _teacherService = teacherService;
             _mapper = mapper;
+            _imgHelper = imgHelper;
         }
 
         [HttpGet("{moduleID:int}/{levelID:int}/{isFinalExam:bool}")]
@@ -252,6 +258,37 @@ namespace examedu.Controllers
                 }
             }
             return Ok(new PaginationResponse<IEnumerable<RequestAddQuestionListByApproverResponse>>(totalRecord, requestResponse));
+        }
+
+        [HttpPost("images")]
+        public async Task<ActionResult> UploadImage([FromForm] IFormFile[] inputs)
+        {
+            // var imageInputsList = JsonConvert.DeserializeObject<List<QuestionImageInput>>(inputs);
+            if (inputs == null)
+            {
+                return BadRequest(new ResponseDTO(400, "ImageList is null"));
+            }
+            // var listImageUrl = new List<QuestionImageResponse>();
+            var listImageUrl = new List<string>();
+
+            foreach (var input in inputs)
+            {
+                if (input == null)
+                {
+                    return BadRequest(new ResponseDTO(400, "Image is null"));
+                }
+                if (input.Length == 0)
+                {
+                    return BadRequest(new ResponseDTO(400, "Image is empty"));
+                }
+                if (input.FileName.Split('.').Last() != "png" && input.FileName.Split('.').Last() != "jpg" && input.FileName.Split('.').Last() != "jpeg")
+                {
+                    return BadRequest(new ResponseDTO(400, "Image is not valid"));
+                }
+                string url = await _imgHelper.Upload(input);
+                listImageUrl.Add(url);
+            }
+            return Ok(listImageUrl);
         }
     }
 }

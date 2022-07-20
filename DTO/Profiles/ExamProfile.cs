@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.DTO.ExamDTO;
 using BackEnd.DTO.ExamQuestionsDTO;
 using examedu.DTO.ExamDTO;
 using ExamEdu.DB.Models;
@@ -33,7 +34,16 @@ namespace ExamEdu.DTO.Profiles
             //Mapping for update exam info response
             CreateMap<Exam, UpdateExamInfoResponse>();
             CreateMap<Exam, GetAllExam>();
-                
+            CreateMap<Exam, ExamDetailResponse>()
+                .ForMember(dest => dest.ModuleCode, opt => opt.MapFrom(s => s.Module.ModuleCode))
+                .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(s => s.Module.ModuleName))
+                .ForMember(dest => dest.ProctorEmail, opt => opt.MapFrom(s => s.Proctor.Email))
+                .ForMember(dest => dest.ProctorFullName, opt => opt.MapFrom(s => s.Proctor.Fullname))
+                .ForMember(dest => dest.SupervisorEmail, opt => opt.MapFrom(s => s.Supervisor.Email));
+            CreateMap<Exam,ExamProctorResponse>()
+                .ForMember(dest => dest.ModuleCode, opt => opt.MapFrom(s => s.Module.ModuleCode))
+                .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(s => s.Module.ModuleName))
+                .ForMember(dest => dest.SupervisorEmail, opt => opt.MapFrom(s => s.Supervisor.Email));
         }
 
     }

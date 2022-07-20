@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
-    public class AdministratorService
+    public class AdministratorService : IAdministratorService
     {
         private DataContext _dataContext;
 

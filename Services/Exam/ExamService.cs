@@ -9,6 +9,7 @@ using examedu.Helper.RandomGenerator;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO.ExamDTO;
+using ExamEdu.DTO.MarkDTO;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Helper;
 using ExamEdu.Helper.UploadDownloadFiles;
@@ -338,20 +339,8 @@ namespace ExamEdu.Services
             return _db.Exams.Where(e => e.ExamId == examId).Select(e => e.isFinalExam).FirstOrDefault();
         }
 
-        public async Task<Tuple<int, IEnumerable<Exam>>> GetExamsByClassModuleId(int classModuleId, int moduleId, PaginationParameter paginationParameter)
+        public Tuple<int, IEnumerable<Exam>> GetExamsByClassModuleId(int classModuleId, int moduleId, PaginationParameter paginationParameter)
         {
-            // var exams = from cm in _db.ClassModules
-            //             join m in _db.Modules on cm.ModuleId equals m.ModuleId
-            //             join e in _db.Exams on m.ModuleId equals e.ModuleId
-            //             where cm.ClassModuleId == classModuleId
-            //             select e;
-
-            // var exams = await _db.ClassModules.Join(_db.Modules, cm => cm.ModuleId, m => m.ModuleId, (cm, m) => new { cm, m })
-            //             .Join(_db.Exams, x => x.m.ModuleId, e => e.ModuleId, (x, e) => new { x, e })
-            //             .Where(y => y.x.cm.ClassModuleId == classModuleId)
-            //             .OrderBy(y => y.e.ExamDay)
-            //             .Select(y => y.e).ToListAsync();
-
             var exams = from cm in _db.ClassModules
                         join cms in _db.Class_Module_Students on cm.ClassModuleId equals cms.ClassModuleId
                         join s in _db.Students on cms.StudentId equals s.StudentId
@@ -493,7 +482,7 @@ namespace ExamEdu.Services
         {
             _db.Exams.Attach(exam);
             var entry = _db.Entry(exam);
-            
+
             entry.Property(e => e.ExamName).IsModified = true;
             entry.Property(e => e.ExamDay).IsModified = true;
             entry.Property(e => e.DurationInMinute).IsModified = true;
@@ -519,7 +508,7 @@ namespace ExamEdu.Services
         public async Task<int> UpdateExamRoom(int examId, string roomId)
         {
             var exam = await _db.Exams.Where(c => c.ExamId == examId).FirstOrDefaultAsync();
-            if(exam == null)
+            if (exam == null)
             {
                 return 0;
             }
@@ -538,20 +527,20 @@ namespace ExamEdu.Services
         public async Task<Tuple<int, IEnumerable<Exam>>> GetAllExam(PaginationParameter paginationParameter)
         {
             var queryResult = from e in _db.Exams
-                         join m in _db.Modules on e.ModuleId equals m.ModuleId
+                              join m in _db.Modules on e.ModuleId equals m.ModuleId
                               orderby e.ExamDay descending
                               select new Exam
-                         {
-                             ExamId = e.ExamId,
-                             ExamName = e.ExamName,
-                             ExamDay = e.ExamDay,
-                             Module = new Module
-                             {
-                                 ModuleId = e.ModuleId,
-                                 ModuleCode = m.ModuleCode,
-                                 ModuleName = m.ModuleName,
-                             },
-                         };
+                              {
+                                  ExamId = e.ExamId,
+                                  ExamName = e.ExamName,
+                                  ExamDay = e.ExamDay,
+                                  Module = new Module
+                                  {
+                                      ModuleId = e.ModuleId,
+                                      ModuleCode = m.ModuleCode,
+                                      ModuleName = m.ModuleName,
+                                  },
+                              };
 
             var exams = await queryResult.ToListAsync();
 
@@ -567,13 +556,13 @@ namespace ExamEdu.Services
 
         public bool IsExist(int examId)
         {
-            return  _db.Exams.Where(s => s.ExamId == examId && s.IsCancelled == false).Any();
+            return _db.Exams.Where(s => s.ExamId == examId && s.IsCancelled == false).Any();
         }
 
         public async Task<int> CancelExam(int examId)
         {
             var examFound = await _db.Exams.Where(e => e.ExamId == examId).FirstOrDefaultAsync();
-            
+
             if (examFound == null)
             {
                 return 0;
@@ -586,6 +575,157 @@ namespace ExamEdu.Services
             examFound.IsCancelled = true;
             int result = await _db.SaveChangesAsync();
             return result;
+        }
+
+        public async Task<IEnumerable<Student>> GetStudents(int classModuleId)
+        {
+            var queryResult = from student in _db.Students
+                              join cms in _db.Class_Module_Students on student.StudentId equals cms.StudentId
+                              where cms.ClassModuleId == classModuleId && student.DeactivatedAt == null
+                              orderby student.StudentId ascending
+                              select new Student
+                              {
+                                  StudentId = student.StudentId,
+                                  Fullname = student.Fullname
+                              };
+            var students = await queryResult.ToListAsync();
+
+            return students; ;
+        }
+
+        // Get all exam by classModuleId and moduleId include exam result
+        public async Task<IEnumerable<ProgressExamReport>> GetAllExamResultByClassModuleId(int classModuleId, int moduleId)
+        {
+            var examsGet = from cm in _db.ClassModules
+                           join cms in _db.Class_Module_Students on cm.ClassModuleId equals cms.ClassModuleId
+                           join s in _db.Students on cms.StudentId equals s.StudentId
+                           join sei in _db.StudentExamInfos on s.StudentId equals sei.StudentId
+                           join e in _db.Exams on sei.ExamId equals e.ExamId
+                           where cm.ClassModuleId == classModuleId && e.ModuleId == moduleId && e.isFinalExam == false
+                           orderby e.ExamId descending
+                           select new ProgressExamReport
+                           {
+                               ExamId = e.ExamId,
+                               ExamName = e.ExamName,
+                               StudentMark = new List<StudentProgressResult>()
+                           };
+            var exams = examsGet.Distinct().ToList();
+            var students = await this.GetStudents(classModuleId);
+            foreach (var e in exams)
+            {
+                foreach (var st in students)
+                {
+                    var examResult = await _db.StudentExamInfos.Join(_db.Students,
+                                                                     sei => sei.StudentId,
+                                                                     s => s.StudentId,
+                                                                     (sei, s) => new { sei, s })
+                                                                     .Where(x => x.sei.StudentId == st.StudentId
+                                                                             && x.sei.ExamId == e.ExamId)
+                                                                     .Select(x => new StudentProgressResult
+                                                                     {
+                                                                         StudentId = x.sei.StudentId,
+                                                                         StudentName = x.s.Fullname,
+                                                                         Mark = x.sei.Mark
+                                                                     })
+                                                                    .FirstOrDefaultAsync();
+                    if (examResult == null)
+                    {
+                        e.StudentMark.Add(new StudentProgressResult
+                        {
+                            StudentId = st.StudentId,
+                            StudentName = st.Fullname,
+                            Mark = null
+                        });
+                    }
+                    else
+                    {
+                        e.StudentMark.Add(examResult);
+                    }
+                }
+            }
+            return exams;
+        }
+        public async Task<byte[]> GenerateModuleProgressExamReport(int classModuleId, int moduleId)
+        {
+            var classModules = await this.GetClassModuleInfo(classModuleId);
+            var students = await this.GetStudents(classModuleId);
+            var examsWithResult = await this.GetAllExamResultByClassModuleId(classModuleId, moduleId);
+            // using var stream = File.OpenRead(pathToTest);
+            using var stream = await _megaHelper.Download(new Uri("https://mega.nz/file/Lh0HGaYL#eHVmZPVAUNN6eD3WfquteM0CmK4DELbhR5QthJTbTvU"));
+            using (var package = new ExcelPackage())
+            {
+                await package.LoadAsync(stream);
+                var moduleProgressExam = package.Workbook.Worksheets[0];
+
+                moduleProgressExam.Cells["A2"].Value = classModules.Class.ClassName;
+                moduleProgressExam.Cells["A3"].Value = $"{classModules.Module.ModuleCode} - {classModules.Module.ModuleName}";
+
+                var studentsFill = moduleProgressExam.Cells[$"A6:B{students.Count() + 6}"];
+                studentsFill.FillDataToCells(students, (markInfo, cells) =>
+                {
+                    cells[0].Value = markInfo.StudentId;
+                    cells[1].Value = markInfo.Fullname;
+                });
+
+                // Get ra từng column để điền exam vào, sau đó moveRight để điền tiếp exam tiếp theo
+                var examResultFill = moduleProgressExam.Cells[$"C5:C{students.Count() + 5}"];
+                // loop qua list exam để fill data
+                foreach (var exam in examsWithResult)
+                {
+                    //Set exam name in the first row (header exam)
+                    examResultFill.SetCellValue(0, 0, exam.ExamName);
+                    // với mỗi exam, loop qua danh sách student để fill data
+                    foreach (var (item, index) in exam.StudentMark.Select((value, i) => (value, i)))
+                    {
+                        // fill data của từng student mark
+                        // index +1 vì đã điền exam name ở ô đầu tiên
+                        examResultFill.SetCellValue(index + 1, 0, item.Mark);
+                    }
+                    examResultFill = examResultFill.MoveRight(1);
+                }
+                return await package.GetAsByteArrayAsync();
+            }
+
+        }
+        public async Task<Exam> GetExamDetailByExamId(int examId)
+        {
+            return await _db.Exams.Where(e => e.ExamId == examId)
+                            .Select(e => new Exam
+                            {
+                                ExamName = e.ExamName,
+                                Module = e.Module,
+                                Description = e.Description,
+                                Password = e.Password,
+                                ExamDay = e.ExamDay,
+                                CreatedAt = e.CreatedAt,
+                                DurationInMinute = e.DurationInMinute,
+                                Room = e.Room,
+                                isFinalExam = e.isFinalExam,
+                                IsCancelled = e.IsCancelled,
+                                Proctor = e.Proctor,
+                                Supervisor = e.Supervisor,
+                            }).FirstOrDefaultAsync();
+        }
+
+        public async Task<Tuple<int, IEnumerable<Exam>>> GetExamByProctorId(int proctorId, PaginationParameter paginationParameter)
+        {
+            var examList = await _db.Exams.Where(e => e.ProctorId == proctorId)
+                                .Select(e => new Exam
+                                {
+                                    ExamId = e.ExamId,
+                                    ExamName = e.ExamName,
+                                    Module = e.Module,
+                                    Description = e.Description,
+                                    Password = e.Password,
+                                    ExamDay = e.ExamDay,
+                                    DurationInMinute = e.DurationInMinute,
+                                    Room = e.Room,
+                                    isFinalExam = e.isFinalExam,
+                                    IsCancelled = e.IsCancelled,
+                                    Supervisor = e.Supervisor,
+                                })
+                                .ToListAsync();
+            return new Tuple<int, IEnumerable<Exam>>(examList.Count(), examList.GetPage(paginationParameter));
         }
     }
 }

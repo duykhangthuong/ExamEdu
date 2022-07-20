@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.DTO.ExamDTO;
 using BackEnd.Services;
 using examedu.DTO.ExamDTO;
 using examedu.DTO.StudentDTO;
@@ -112,9 +113,9 @@ namespace ExamEdu.Controllers
         }
 
         [HttpGet("progressExam/{classModuleId:int}/{moduleId:int}")]
-        public async Task<IActionResult> GetProgressExam(int classModuleId, int moduleId, [FromQuery] PaginationParameter paginationParameter)
+        public IActionResult GetProgressExam(int classModuleId, int moduleId, [FromQuery] PaginationParameter paginationParameter)
         {
-            (int totalRecord, IEnumerable<Exam> progressExams) = await _examService.GetExamsByClassModuleId(classModuleId, moduleId, paginationParameter);
+            (int totalRecord, IEnumerable<Exam> progressExams) = _examService.GetExamsByClassModuleId(classModuleId, moduleId, paginationParameter);
             if (totalRecord == 0)
             {
                 return NotFound(new ResponseDTO(404, "Exam not found"));
@@ -190,7 +191,8 @@ namespace ExamEdu.Controllers
         public async Task<ActionResult> ExportExamMarkReport(int examId, int classModuleId)
         {
             var studentListMark = await _examService.GetResultExamListByExamId(examId);
-            if (studentListMark.Count() == 0) {
+            if (studentListMark.Count() == 0)
+            {
                 return NotFound(new ResponseDTO(404, "There is no student taking this exam "));
             }
             var stream = await _examService.GenerateExamMarkReport(examId, classModuleId);
@@ -253,12 +255,48 @@ namespace ExamEdu.Controllers
             {
                 return Ok(new ResponseDTO(200, "Exam successfully cancelled"));
             }
-            else if(status == -1)
+            else if (status == -1)
             {
                 return NotFound(new ResponseDTO(404, "This exam is already done"));
             }
             return BadRequest(new ResponseDTO(400, "Error when cancel exam"));
 
+        }
+        [HttpGet("report/{classModuleId:int}/{moduleId:int}")]
+        public async Task<IActionResult> ExportModuleProgressTest(int classModuleId, int moduleId)
+        {
+
+            var rp = await _examService.GetAllExamResultByClassModuleId(classModuleId, moduleId);
+            if (rp.Count() == 0)
+            {
+                return NotFound(new ResponseDTO(404, "There is no exam in this module"));
+            }
+            var stream = await _examService.GenerateModuleProgressExamReport(classModuleId, moduleId);
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Report.xlsx");
+        }
+
+        [HttpGet("examDetail/{examId:int}")]
+        public async Task<IActionResult> GetExamDetailById(int examId)
+        {
+            var exam = await _examService.GetExamDetailByExamId(examId);
+            if (exam == null)
+            {
+                return NotFound(new ResponseDTO(404, "Exam not found"));
+            }
+            return Ok(_mapper.Map<ExamDetailResponse>(exam));
+        }
+
+        [HttpGet("examProctor/{proctorId:int}")]
+        public async Task<IActionResult> GetExamByProctorId(int proctorId, [FromQuery] PaginationParameter paginationParameter)
+        {
+            (int totalRecord, IEnumerable<Exam> examList) = await _examService.GetExamByProctorId(proctorId, paginationParameter);
+            if (totalRecord == 0)
+            {
+                return NotFound(new ResponseDTO(404, "Exam not found"));
+            }
+            IEnumerable<ExamProctorResponse> examListResponse = _mapper.Map<IEnumerable<ExamProctorResponse>>(examList);
+
+            return Ok(new PaginationResponse<IEnumerable<ExamProctorResponse>>(totalRecord, examListResponse));
         }
     }
 }

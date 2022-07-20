@@ -197,7 +197,7 @@ namespace examedu.Services
 
             //var distinctStudents = students.Distinct().ToList();
 
-            var distinctStudents = queryResult.Distinct().ToList();
+            var distinctStudents =await queryResult.Distinct().ToListAsync();
 
             return Tuple.Create(distinctStudents.Count, distinctStudents.GetPage(paginationParameter));
         }

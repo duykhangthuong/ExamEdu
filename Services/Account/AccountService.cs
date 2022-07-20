@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
+using BackEnd.DTO.AccountDTO;
 using BackEnd.DTO.Email;
 using BackEnd.Helper.Email;
 using examedu.DTO.AccountDTO;
@@ -37,11 +38,11 @@ namespace examedu.Services.Account
                         .Replace('\u0111', 'd').Replace('\u0110', 'D');
         }
 
-            string getRoleName(int id)
-            {
-                Role role =  _dataContext.Roles.Find(id);
-                return role.RoleName;
-            }
+        string getRoleName(int id)
+        {
+            Role role = _dataContext.Roles.Find(id);
+            return role.RoleName;
+        }
 
         private IEnumerable<AccountResponse> addAccountToTotalList(
         IEnumerable<Student> students, IEnumerable<AcademicDepartment> AcademicDepartments, IEnumerable<Teacher> teachers)
@@ -327,6 +328,95 @@ namespace examedu.Services.Account
         {
             Role role = await _dataContext.Roles.FindAsync(id);
             return role.RoleName;
+        }
+
+        public async Task<AccountResponse> GetAccountInforByEmail(string email)
+        {
+            AccountResponse accountToReponse;
+
+            Administrator administrator = await _dataContext.Administrators.Where(s => s.Email.ToLower().Equals(email.ToLower())).FirstOrDefaultAsync(); ;
+            if (administrator != null)
+            {
+                accountToReponse = _mapper.Map<AccountResponse>(administrator);
+                accountToReponse.RoleName = await GetRoleName(administrator.RoleId);
+                return accountToReponse;
+            }
+
+            Student student = await _dataContext.Students.Where(s => s.Email.ToLower().Equals(email.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+            if (student != null)
+            {
+                accountToReponse = _mapper.Map<AccountResponse>(student);
+                accountToReponse.RoleName = await GetRoleName(student.RoleId);
+                return accountToReponse;
+            }
+
+            Teacher teacher = await _dataContext.Teachers.Where(s => s.Email.ToLower().Equals(email.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+            if (teacher != null)
+            {
+                accountToReponse = _mapper.Map<AccountResponse>(teacher);
+                accountToReponse.RoleName = await GetRoleName(teacher.RoleId);
+                return accountToReponse;
+            }
+
+            AcademicDepartment academicDepartment = await _dataContext.AcademicDepartments.Where(s => s.Email.ToLower().Equals(email.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+            if (academicDepartment != null)
+            {
+                accountToReponse = _mapper.Map<AccountResponse>(academicDepartment);
+                accountToReponse.RoleName = await GetRoleName(academicDepartment.RoleId);
+                return accountToReponse;
+            }
+
+            return null;
+        }
+
+        public async Task<int> UpdateAccount(UpdateAccountInput accountInput, int roleId, string currEmail)
+        {
+            int rowUpdated = 0;
+            switch (roleId)
+            {
+                case 1:
+                    Student student = await _dataContext.Students.Where(s => s.Email.ToLower().Equals(currEmail.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+                    if (student == null)
+                    {
+                        return -1;
+                    }
+                    student.Email = accountInput.Email;
+                    student.Fullname = accountInput.Fullname;
+
+                    rowUpdated = await _dataContext.SaveChangesAsync();
+                    return rowUpdated;
+                case 2:
+                    Teacher teacher = await _dataContext.Teachers.Where(s => s.Email.ToLower().Equals(currEmail.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+                    if (teacher == null)
+                    {
+                        return -1;
+                    }
+                    teacher.Email = accountInput.Email;
+                    teacher.Fullname = accountInput.Fullname;
+                    rowUpdated = await _dataContext.SaveChangesAsync();
+                    return rowUpdated;
+                case 3:
+                    AcademicDepartment academicDepartment = await _dataContext.AcademicDepartments.Where(s => s.Email.ToLower().Equals(currEmail.ToLower()) && s.DeactivatedAt == null).FirstOrDefaultAsync();
+                    if (academicDepartment == null)
+                    {
+                        return -1;
+                    }
+                    academicDepartment.Email = accountInput.Email;
+                    rowUpdated = await _dataContext.SaveChangesAsync();
+                    return rowUpdated;
+                case 4:
+                    Administrator administrator = await _dataContext.Administrators.Where(s => s.Email.ToLower().Equals(currEmail.ToLower())).FirstOrDefaultAsync();
+                    if (administrator == null)
+                    {
+                        return -1;
+                    }
+                    administrator.Email = accountInput.Email;
+                    administrator.Fullname = accountInput.Fullname;
+                    rowUpdated = await _dataContext.SaveChangesAsync();
+                    return rowUpdated;
+                default:
+                    return rowUpdated;
+            }
         }
     }
 }

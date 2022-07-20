@@ -3,15 +3,17 @@ using System;
 using ExamEdu.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ExamEdu.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220610032153_StudentErrorAdding")]
+    partial class StudentErrorAdding
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,21 +127,6 @@ namespace ExamEdu.Migrations
                     b.ToTable("Answers");
                 });
 
-            modelBuilder.Entity("ExamEdu.DB.Models.CheatingType", b =>
-                {
-                    b.Property<int>("CheatingTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
-
-                    b.Property<string>("CheatingTypeName")
-                        .HasColumnType("text");
-
-                    b.HasKey("CheatingTypeId");
-
-                    b.ToTable("CheatingTypes");
-                });
-
             modelBuilder.Entity("ExamEdu.DB.Models.Class", b =>
                 {
                     b.Property<int>("ClassId")
@@ -208,6 +195,21 @@ namespace ExamEdu.Migrations
                     b.HasIndex("ClassModuleId");
 
                     b.ToTable("Class_Module_Students");
+                });
+
+            modelBuilder.Entity("ExamEdu.DB.Models.ErrorType", b =>
+                {
+                    b.Property<int>("ErrorTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
+
+                    b.Property<int>("ErrorTypeName")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ErrorTypeId");
+
+                    b.ToTable("ErrorType");
                 });
 
             modelBuilder.Entity("ExamEdu.DB.Models.Exam", b =>
@@ -570,18 +572,18 @@ namespace ExamEdu.Migrations
                     b.ToTable("StudentAnswers");
                 });
 
-            modelBuilder.Entity("ExamEdu.DB.Models.StudentCheating", b =>
+            modelBuilder.Entity("ExamEdu.DB.Models.StudentError", b =>
                 {
-                    b.Property<int>("StudentCheatingId")
+                    b.Property<int>("StudentErrorId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
 
-                    b.Property<int>("CheatingTypeId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Comment")
                         .HasColumnType("text");
+
+                    b.Property<int>("ErrorTypeId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ExamId")
                         .HasColumnType("integer");
@@ -595,15 +597,15 @@ namespace ExamEdu.Migrations
                     b.Property<DateTime>("Time")
                         .HasColumnType("timestamp without time zone");
 
-                    b.HasKey("StudentCheatingId");
+                    b.HasKey("StudentErrorId");
 
-                    b.HasIndex("CheatingTypeId");
+                    b.HasIndex("ErrorTypeId");
 
                     b.HasIndex("ExamId");
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("StudentCheatings");
+                    b.ToTable("StudentError");
                 });
 
             modelBuilder.Entity("ExamEdu.DB.Models.StudentExamInfo", b =>
@@ -973,27 +975,27 @@ namespace ExamEdu.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("ExamEdu.DB.Models.StudentCheating", b =>
+            modelBuilder.Entity("ExamEdu.DB.Models.StudentError", b =>
                 {
-                    b.HasOne("ExamEdu.DB.Models.CheatingType", "CheatingType")
-                        .WithMany("StudentCheatings")
-                        .HasForeignKey("CheatingTypeId")
+                    b.HasOne("ExamEdu.DB.Models.ErrorType", "ErrorType")
+                        .WithMany("StudentErrors")
+                        .HasForeignKey("ErrorTypeId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("ExamEdu.DB.Models.Exam", "Exam")
-                        .WithMany("StudentCheatings")
+                        .WithMany("StudentErrors")
                         .HasForeignKey("ExamId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("ExamEdu.DB.Models.Student", "Student")
-                        .WithMany("StudentCheatings")
+                        .WithMany("StudentErrors")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
-                    b.Navigation("CheatingType");
+                    b.Navigation("ErrorType");
 
                     b.Navigation("Exam");
 
@@ -1061,11 +1063,6 @@ namespace ExamEdu.Migrations
                     b.Navigation("Questions");
                 });
 
-            modelBuilder.Entity("ExamEdu.DB.Models.CheatingType", b =>
-                {
-                    b.Navigation("StudentCheatings");
-                });
-
             modelBuilder.Entity("ExamEdu.DB.Models.Class", b =>
                 {
                     b.Navigation("ClassModules");
@@ -1076,13 +1073,18 @@ namespace ExamEdu.Migrations
                     b.Navigation("Class_Module_Students");
                 });
 
+            modelBuilder.Entity("ExamEdu.DB.Models.ErrorType", b =>
+                {
+                    b.Navigation("StudentErrors");
+                });
+
             modelBuilder.Entity("ExamEdu.DB.Models.Exam", b =>
                 {
                     b.Navigation("Exam_FEQuestions");
 
                     b.Navigation("ExamQuestions");
 
-                    b.Navigation("StudentCheatings");
+                    b.Navigation("StudentErrors");
 
                     b.Navigation("StudentExamInfos");
                 });
@@ -1153,7 +1155,7 @@ namespace ExamEdu.Migrations
 
                     b.Navigation("StudentAnswers");
 
-                    b.Navigation("StudentCheatings");
+                    b.Navigation("StudentErrors");
 
                     b.Navigation("StudentExamInfos");
 
