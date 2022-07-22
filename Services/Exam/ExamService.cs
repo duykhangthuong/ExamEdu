@@ -724,6 +724,7 @@ namespace ExamEdu.Services
                                     IsCancelled = e.IsCancelled,
                                     Supervisor = e.Supervisor,
                                 })
+                                .OrderByDescending(e => e.ExamDay)
                                 .ToListAsync();
             return new Tuple<int, IEnumerable<Exam>>(examList.Count(), examList.GetPage(paginationParameter));
         }
