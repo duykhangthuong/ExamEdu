@@ -112,6 +112,11 @@ namespace ExamEdu.DB
                         j.HasKey(cm => new { cm.StudentId, cm.ClassModuleId });
                     }
                 );
+            modelBuilder.Entity<Class>()
+             .HasMany(r => r.Students)
+             .WithOne(t => t.Class)
+             .HasForeignKey(t => t.ClassId)
+             .OnDelete(DeleteBehavior.SetNull);
 
             // Connect many-many relationship of exam and question 
             modelBuilder.Entity<Exam>()
@@ -317,7 +322,7 @@ namespace ExamEdu.DB
                .WithOne(a => a.Requester)
                .HasForeignKey(a => a.RequesterId)
                .OnDelete(DeleteBehavior.SetNull);
- 
+
             // Connect StudentError to ErrorType
             modelBuilder.Entity<CheatingType>()
                .HasMany(r => r.StudentCheatings)
@@ -335,7 +340,7 @@ namespace ExamEdu.DB
                 .HasMany<StudentCheating>(s => s.StudentCheatings)
                 .WithOne(se => se.Exam)
                 .HasForeignKey(se => se.ExamId)
-                .OnDelete(DeleteBehavior.SetNull);    
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

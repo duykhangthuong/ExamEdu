@@ -19,5 +19,6 @@ namespace ExamEdu.DB.Models
         // Many-Many module
         public ICollection<Module> Modules { get; set; }
         public ICollection<ClassModule> ClassModules { get; set; }
+        public ICollection<Student> Students { get; set; }
     }
 }

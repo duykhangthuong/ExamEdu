@@ -8,6 +8,7 @@ namespace ExamEdu.DB.Models
     public class AcademicDepartment
     {
         public int AcademicDepartmentId { get; set; }
+        public string Fullname { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;

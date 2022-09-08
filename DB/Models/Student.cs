@@ -18,6 +18,10 @@ namespace ExamEdu.DB.Models
         public int RoleId { get; set; }
         public Role Role { get; set; }
 
+        // Many student - one class
+        public int? ClassId { get; set; }
+        public Class Class { get; set; }
+
         // Many-Many exam
         public ICollection<Exam> Exams { get; set; }
         public ICollection<StudentExamInfo> StudentExamInfos { get; set; }

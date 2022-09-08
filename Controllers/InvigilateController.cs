@@ -33,12 +33,13 @@ namespace examedu.Controllers
             {
                 return BadRequest(new ResponseDTO(400, "Exam does not exist"));
             }
-            if(examInfor.Room != null && examInfor.Room != "")
+            if (examInfor.Room != null && examInfor.Room != "")
             {
+                await _notifyHub.Clients.Group("student" + examRoomInfor.ExamId.ToString()).SendAsync("restartConnection", examInfor.Room); 
                 return BadRequest(new ResponseDTO(400, "Exam has been generated room"));
             }
             string roomId = System.Guid.NewGuid().ToString();
-            if(await _examService.UpdateExamRoom(examRoomInfor.ExamId, roomId) == 1)
+            if (await _examService.UpdateExamRoom(examRoomInfor.ExamId, roomId) == 1)
             {
                 return Created(nameof(GenerateRoomId), new ResponseDTO(201, "Successfully Generate"));
             }
@@ -66,9 +67,9 @@ namespace examedu.Controllers
         [HttpPost("studentDisconnect")]
         public async Task<IActionResult> StudentDisconnectNotify(ExamRoomInfor examRoomInfor)
         {
-            await _notifyHub.Clients.Group("teacher"+examRoomInfor.ExamId.ToString()).SendAsync("StudentDisconnect", examRoomInfor.RoomId); //room id la email cua thang disconnect
+            await _notifyHub.Clients.Group("teacher" + examRoomInfor.ExamId.ToString()).SendAsync("StudentDisconnect", examRoomInfor.RoomId); //room id la email cua thang disconnect
             return Ok();
         }
-        
+
     }
 }
