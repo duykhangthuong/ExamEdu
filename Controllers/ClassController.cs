@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BackEnd.DTO.ClassDTO;
 using BackEnd.Services;
+using examedu.DTO.StudentDTO;
 using examedu.Services;
 using examedu.Services.Classes;
 using ExamEdu.DB.Models;
@@ -88,6 +89,24 @@ namespace examedu.Controllers
 
             //Return the classes in a pagination response
             return Ok(new PaginationResponse<IEnumerable<ClassNameResponse>>(classes.Item1, classesResponse));
+        }
+
+        [HttpGet("students/{classId:int}")]
+        public async Task<IActionResult> GetAllStudentOfClass(int classId, [FromQuery]PaginationParameter paginationParameter)
+        {
+            bool isClassExist = await _classService.IsClassExist(classId);
+
+            if(!isClassExist)
+            {
+                return NotFound(new ResponseDTO(404, "Class not found"));
+            }
+            
+            //Query for students
+            var studentsQueryResult = await _classService.GetAllStudentOfClass(classId, paginationParameter);
+
+            var studentResponse = _mapper.Map<IEnumerable<StudentResponse>>(studentsQueryResult.Item2);
+
+            return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(studentsQueryResult.Item1, studentResponse));
         }
 
         [HttpPost("createClass")]

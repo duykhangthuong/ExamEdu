@@ -102,5 +102,12 @@ namespace examedu.Services.Classes
 
             return result;
         }
+
+        public async Task<Tuple<int, IEnumerable<Student>>> GetAllStudentOfClass(int classId, PaginationParameter paginationParameter)
+        {
+            var studentList = await _db.Students.Where(s => s.ClassId == classId && s.DeactivatedAt == null).ToListAsync();
+
+            return Tuple.Create(studentList.Count, studentList.GetPage(paginationParameter));
+        }
     }
 }
