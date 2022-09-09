@@ -71,6 +71,7 @@ namespace examedu.Services
                 moduleMarkInfor.ExamDate = exam.ExamDay;
                 moduleMarkInfor.ExamName = exam.ExamName;
                 moduleMarkInfor.ModuleName = moduleInfor.ModuleName;
+                moduleMarkInfor.ModuleCode = moduleInfor.ModuleCode;
                 moduleMarkInfor.ModuleID = moduleInfor.ModuleId;
                 foreach (var studetExamInfor in studentExamInforList)
                 {

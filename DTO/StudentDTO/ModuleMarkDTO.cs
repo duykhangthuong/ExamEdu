@@ -9,6 +9,7 @@ namespace examedu.DTO.StudentDTO
     {
         public int ModuleID { get; set; }
         public string ModuleName { get; set; }
+        public string ModuleCode { get; set; }
         public string ExamName { get; set; }
         public DateTime ExamDate { get; set; }
         public float? Mark { get; set; }
