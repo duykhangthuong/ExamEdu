@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using examedu.DTO.ExamDTO;
 using examedu.DTO.StudentDTO;
@@ -526,8 +527,12 @@ namespace ExamEdu.Services
 
         public async Task<Tuple<int, IEnumerable<Exam>>> GetAllExam(PaginationParameter paginationParameter)
         {
+            string searchName = paginationParameter.SearchName;
+            searchName = searchName.Replace(":*|", " ").Replace(":*", "");
+            searchName = ConvertToUnsign(searchName);
             var queryResult = from e in _db.Exams
                               join m in _db.Modules on e.ModuleId equals m.ModuleId
+                              where e.ExamName.Contains(searchName) || m.ModuleCode.Contains(searchName)
                               orderby e.ExamDay descending
                               select new Exam
                               {
@@ -547,6 +552,14 @@ namespace ExamEdu.Services
             var totalCount = exams.Count;
 
             return new Tuple<int, IEnumerable<Exam>>(totalCount, exams.GetPage(paginationParameter));
+        }
+
+        private string ConvertToUnsign(string str)
+        {
+            Regex regex = new Regex("\\p{IsCombiningDiacriticalMarks}+");
+            string temp = str.Normalize(System.Text.NormalizationForm.FormD);
+            return regex.Replace(temp, String.Empty)
+                        .Replace('\u0111', 'd').Replace('\u0110', 'D');
         }
 
         public bool IsCancelled(int examId)
@@ -709,7 +722,10 @@ namespace ExamEdu.Services
 
         public async Task<Tuple<int, IEnumerable<Exam>>> GetExamByProctorId(int proctorId, PaginationParameter paginationParameter)
         {
-            var examList = await _db.Exams.Where(e => e.ProctorId == proctorId)
+            var examList = await _db.Exams
+                                .Where(e => e.ProctorId == proctorId && 
+                                        (e.ExamName.ToUpper().Contains(paginationParameter.SearchName.ToUpper()) 
+                                        || e.Module.ModuleCode.ToUpper().Contains(paginationParameter.SearchName.ToUpper())))
                                 .Select(e => new Exam
                                 {
                                     ExamId = e.ExamId,

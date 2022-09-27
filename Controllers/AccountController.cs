@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BackEnd.DTO.AccountDTO;
 using BackEnd.Services;
 using examedu.DTO.AccountDTO;
+using examedu.DTO.ExcelDTO;
 using examedu.Services;
 using examedu.Services.Account;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
 using ExamEdu.DTO.PaginationDTO;
+using ExamEdu.Helper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 
 namespace examedu.Controllers
 {
@@ -91,6 +96,31 @@ namespace examedu.Controllers
                 return BadRequest(new ResponseDTO(400, "Error when add account"));
             }
             return CreatedAtAction(nameof(GetAccountList), new ResponseDTO(201, "Successfully inserted"));
+        }
+        [HttpPost("excel")]
+        public async Task<ActionResult> CreateNewAccountByExcel([FromForm] IFormFile excelFile,[FromForm] int roleId)
+        {
+            var convertResult = await _accountService.convertExcelToAccountInputList(excelFile); 
+            //item1 = list error; item2 = list account (su dung khi item1 length == 0)
+            if (convertResult.Item1.Count > 0)
+            {
+                return BadRequest(convertResult.Item1);
+            }
+
+            foreach (var account in convertResult.Item2)
+            {
+                account.RoleID = roleId;
+            }
+            var insertResult = await _accountService.InsertListAccount(convertResult.Item2);
+            if (insertResult.Item2.Count > 0)
+            {
+                return BadRequest(insertResult.Item2);
+            }
+            if (insertResult.Item1 == convertResult.Item2.Count)
+            {
+                return Ok( new ResponseDTO(201, "Successfully inserted"));
+            }
+            return BadRequest(new ResponseDTO(400, "Error when inserted, upload again for more detail"));
         }
 
         /// <summary>

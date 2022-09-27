@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,11 +10,14 @@ using BackEnd.DTO.AccountDTO;
 using BackEnd.DTO.Email;
 using BackEnd.Helper.Email;
 using examedu.DTO.AccountDTO;
+using examedu.DTO.ExcelDTO;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Helper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace examedu.Services.Account
 {
@@ -158,7 +162,7 @@ namespace examedu.Services.Account
         public async Task<int> InsertNewAccount(AccountInput accountInput)
         {
             PaginationParameter paginationParameter = new PaginationParameter { PageNumber = 1, PageSize = 1, SearchName = accountInput.Email };
-            if (GetAccountList(paginationParameter).Item1 == 1 || GetDeactivatedAccountList(paginationParameter).Item1 == 1)
+            if (GetAccountList(paginationParameter).Item1 >= 1 || GetDeactivatedAccountList(paginationParameter).Item1 >= 1)
             {
                 return 0;
             }
@@ -218,6 +222,52 @@ namespace examedu.Services.Account
                     {
                         return 1;
                     }
+                default:
+                    return -1;
+            }
+        }
+
+        public int InsertNewAccountNoSaveChange(AccountInput accountInput)
+        {
+            PaginationParameter paginationParameter = new PaginationParameter { PageNumber = 1, PageSize = 1, SearchName = accountInput.Email };
+            if (GetAccountList(paginationParameter).Item1 >= 1 || GetDeactivatedAccountList(paginationParameter).Item1 >= 1)
+            {
+                return 0;
+            }
+
+            switch (accountInput.RoleID)
+            {
+                //CASE NAY CHI DUNG KHI MUON TAO TAI KHOAN ADMIN KO BO CMT CASE NAY
+                // case 0:
+                //     var adminToAdd = _mapper.Map<Administrator>(accountInput);
+                //     adminToAdd.RoleId = accountInput.RoleID;
+                //     adminToAdd.Password = processPasswordAndSendEmail(adminToAdd.Email);
+                //     _dataContext.Administrators.Add(adminToAdd);
+                //     if(await _dataContext.SaveChangesAsync() !=1)
+                //     {
+                //         return -1;
+                //     }
+                //     else
+                //     {
+                //         return 1;
+                //     }
+                case 1:
+                    var studentToAdd = _mapper.Map<Student>(accountInput);
+                    studentToAdd.RoleId = accountInput.RoleID;
+                    studentToAdd.Password = processPasswordAndSendEmail(studentToAdd.Email);
+                    _dataContext.Students.Add(studentToAdd);
+                    return 1;
+                case 2:
+                    var teacherToAdd = _mapper.Map<Teacher>(accountInput);
+                    teacherToAdd.RoleId = accountInput.RoleID;
+                    teacherToAdd.Password = processPasswordAndSendEmail(teacherToAdd.Email);
+                    _dataContext.Teachers.Add(teacherToAdd);
+                    return 1;
+                case 3:
+                    var academicDepartToAdd = _mapper.Map<AcademicDepartment>(accountInput);
+                    academicDepartToAdd.RoleId = accountInput.RoleID;
+                    academicDepartToAdd.Password = processPasswordAndSendEmail(academicDepartToAdd.Email);
+                    return 1;
                 default:
                     return -1;
             }
@@ -417,6 +467,108 @@ namespace examedu.Services.Account
                 default:
                     return rowUpdated;
             }
+        }
+
+        public async Task<Tuple<List<CellErrorInfor>, List<AccountInput>>> convertExcelToAccountInputList(IFormFile excelFile)
+        {
+            List<AccountInput> listAccountReturn = new List<AccountInput>();
+            List<CellErrorInfor> cellErrorInfors = new List<CellErrorInfor>();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+                await excelFile.CopyToAsync(ms);
+
+                using (ExcelPackage package = new ExcelPackage(ms))
+                {
+                    ExcelWorksheet workSheet = package.Workbook.Worksheets[0];
+                    var totalRows = workSheet.Dimension.Rows;
+                    var totalColumn = workSheet.Dimension.Columns;
+
+                    for (int i = 2; i <= totalRows; i++)
+                    {
+                        AccountInput tempAccount = new AccountInput();
+
+                        try
+                        {
+                            tempAccount.Email = workSheet.Cells[i, 1].Value.ToString();
+                        }
+                        catch (System.Exception)
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 1,
+                                ErrorDetail = "The cell does not have value"
+                            });
+                        }
+
+                        try
+                        {
+                            tempAccount.Fullname = workSheet.Cells[i, 2].Value.ToString();
+                        }
+                        catch (System.Exception)
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 2,
+                                ErrorDetail = "The cell does not have value"
+                            });
+                        }
+                        if (tempAccount.Email != null && !_emailHelper.IsValidEmail(tempAccount.Email))
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 1,
+                                ErrorDetail = "The email is not in valid format"
+                            });
+                        }
+                        listAccountReturn.Add(tempAccount);
+                    }
+                }
+            }
+            var duplicateEmail = listAccountReturn
+              .Select((t, i) => new { Index = i, Text = t.Email })
+              .GroupBy(g => g.Text)
+              .Where(g => g.Count() > 1);
+
+            foreach (var item in duplicateEmail)
+            {
+                foreach (var item2 in item)
+                {
+                    cellErrorInfors.Add(new CellErrorInfor
+                    {
+                        RowIndex = item2.Index+2,
+                        ColumnIndex = 1,
+                        ErrorDetail = "The email is duplicate"
+                    });
+                }
+            }
+            return Tuple.Create(cellErrorInfors, listAccountReturn);
+        }
+
+        public async Task<Tuple<int, List<CellErrorInfor>>> InsertListAccount(List<AccountInput> listAccount)
+        {
+            List<CellErrorInfor> cellErrorInfors = new List<CellErrorInfor>();
+            for (int i = 1; i <= listAccount.Count; i++)
+            {
+                if (InsertNewAccountNoSaveChange(listAccount[i - 1]) == 0)
+                {
+                    cellErrorInfors.Add(new CellErrorInfor
+                    {
+                        RowIndex = i + 1,
+                        ColumnIndex = 1,
+                        ErrorDetail = "The email is existed"
+                    });
+                }
+            }
+            int numOfRowInserted = 0;
+            if (cellErrorInfors.Count == 0)
+            {
+                numOfRowInserted = await _dataContext.SaveChangesAsync();
+            }
+            return Tuple.Create(numOfRowInserted, cellErrorInfors);
         }
     }
 }
