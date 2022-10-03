@@ -116,6 +116,9 @@ namespace ExamEdu.Services
             var module = await getModuleByCode(moduleInput.ModuleCode);
 
             module.ModuleName = moduleInput.ModuleName;
+            _db.Modules.Attach(module);
+            _db.Entry(module).Property(x => x.ModuleName).IsModified = true;
+            
 
             return await _db.SaveChangesAsync();
         }
