@@ -167,7 +167,17 @@ namespace ExamEdu.Controllers
             }
             //Now we insert exam
             Exam exam = _mapper.Map<Exam>(input);
-            Tuple<int, int> insertResult = await _examService.CreateExamInfo(exam);
+            Tuple<int, int> insertResult;
+            //Try inserting the exam
+            //A bit of unclean code, but I'm not bothered enough.
+            try
+            {
+                insertResult = await _examService.CreateExamInfo(exam);
+            }catch(Exception e)
+            {
+                return BadRequest(new ResponseDTO(400, e.Message));
+            }
+            
             if (insertResult.Item1 < 1)
             {
                 return BadRequest(new ResponseDTO(400, "Error when insert exam"));
@@ -207,7 +217,17 @@ namespace ExamEdu.Controllers
                 return BadRequest(new ResponseDTO(400, "Exam not found"));
             }
             Exam exam = _mapper.Map<Exam>(input);
-            int status = await _examService.UpdateExam(exam);
+
+            //Again, better code can be made, but I'm not bothered enough
+            int status;
+            try
+            {
+                status = await _examService.UpdateExam(exam);
+            }catch(Exception e)
+            {
+                return BadRequest(new ResponseDTO(400, e.Message));
+            }
+
             if (status == 1)
             {
                 return Ok(new ResponseDTO(200, "Exam successfully updated"));
