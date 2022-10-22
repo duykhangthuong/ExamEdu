@@ -21,6 +21,7 @@ namespace examedu.Services.Account
         Task<AccountResponse> GetAccountInforByEmail(string email);
         Task<int> UpdateAccount(UpdateAccountInput accountInput, int roleId, string currEmail);
         Task<Tuple<List<CellErrorInfor>, List<AccountInput>>> convertExcelToAccountInputList(IFormFile excelFile);
-        Task<Tuple<int,List<CellErrorInfor>>> InsertListAccount(List<AccountInput> listAccount);
+        Task<Tuple<int, List<CellErrorInfor>>> InsertListAccount(List<AccountInput> listAccount);
+        Task<int> ForgotPassword(string email);
     }
 }

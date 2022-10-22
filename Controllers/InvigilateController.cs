@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BackEnd.DTO.InvigilateDTO;
 using examedu.DTO.InvigilateDTO;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO;
@@ -68,6 +69,13 @@ namespace examedu.Controllers
         public async Task<IActionResult> StudentDisconnectNotify(ExamRoomInfor examRoomInfor)
         {
             await _notifyHub.Clients.Group("teacher" + examRoomInfor.ExamId.ToString()).SendAsync("StudentDisconnect", examRoomInfor.RoomId); //room id la email cua thang disconnect
+            return Ok();
+        }
+
+        [HttpPost("studentCheatingNotify")]
+        public async Task<IActionResult> StudentCheatingNotify(StudentCheatingInfor studentCheatingInfor)
+        {
+            await _notifyHub.Clients.Group("teacher" + studentCheatingInfor.ExamId.ToString()).SendAsync("StudentCheatingNotify", studentCheatingInfor.RoomId); //room id la email cua thang cheating
             return Ok();
         }
 

@@ -154,6 +154,35 @@ namespace examedu.Services.Account
             return password;
         }
 
+        public async Task<int> ForgotPassword(string email)
+        {
+            var student = await _dataContext.Students.FirstOrDefaultAsync(t => t.Email.ToUpper().Equals(email.ToUpper()) && t.DeactivatedAt == null);
+            if (student != null)
+            {
+                student.Password = processPasswordAndSendEmail(email);
+                _dataContext.Students.Update(student);
+                return await _dataContext.SaveChangesAsync();
+            }
+
+            var teacher = await _dataContext.Teachers.FirstOrDefaultAsync(t => t.Email.ToUpper().Equals(email.ToUpper()) && t.DeactivatedAt == null);
+            if (teacher != null)
+            {
+                teacher.Password = processPasswordAndSendEmail(email);
+                _dataContext.Teachers.Update(teacher);
+                return await _dataContext.SaveChangesAsync();
+            }
+
+            var academicDepartment = _dataContext.AcademicDepartments.FirstOrDefault(t => t.Email.ToUpper().Equals(email.ToUpper()) && t.DeactivatedAt == null);
+            if (academicDepartment != null)
+            {
+                academicDepartment.Password = processPasswordAndSendEmail(email);
+                _dataContext.AcademicDepartments.Update(academicDepartment);
+                return await _dataContext.SaveChangesAsync();
+            }
+
+            return 0;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -371,7 +400,7 @@ namespace examedu.Services.Account
                 return Tuple.Create(accountToReponse, password);
             }
 
-            return null;
+            return Tuple.Create((AccountResponse)null, (string)null);
         }
 
         public async Task<string> GetRoleName(int id)
@@ -539,7 +568,7 @@ namespace examedu.Services.Account
                 {
                     cellErrorInfors.Add(new CellErrorInfor
                     {
-                        RowIndex = item2.Index+2,
+                        RowIndex = item2.Index + 2,
                         ColumnIndex = 1,
                         ErrorDetail = "The email is duplicate"
                     });

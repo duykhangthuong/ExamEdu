@@ -44,7 +44,7 @@ namespace BackEnd.Controllers
                 (var account, string password) = await _accountService.GetAccountByEmail(loginInput.Email);
                 if (account == null)
                 {
-                    return NotFound(new ResponseDTO(404, "Wrong credentials"));
+                    return NotFound(new ResponseDTO(404, "Wrong credentials or account has been deactivated"));
                 }
 
                 //Verify password with BCrypt
@@ -106,6 +106,24 @@ namespace BackEnd.Controllers
                 return BadRequest(new ResponseDTO(400, "Fail to remove refresh token."));
             }
             return Ok(new ResponseDTO(200, "Logout success!"));
+        }
+
+        [HttpPut("forgot-password")]
+        public async Task<ActionResult> ForgotPassword([FromBody]string email)
+        {
+            //Find account of user in db
+            (var account, string password) = await _accountService.GetAccountByEmail(email);
+            if (account == null)
+            {
+                return NotFound(new ResponseDTO(404, "Email does not exist or has been deactivated"));
+            }
+
+            int rs= await _accountService.ForgotPassword(email);
+            if(rs==1){
+                return Ok(new ResponseDTO(200, "An email contains new password has been sent to your email address. Please check your email to get the new password."));
+            }else{
+                return Conflict(new ResponseDTO(409, "Reset password fail. Please try again."));
+            }
         }
     }
 }
