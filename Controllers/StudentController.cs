@@ -12,6 +12,7 @@ using ExamEdu.DTO;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace examedu.Controllers
@@ -122,7 +123,7 @@ namespace examedu.Controllers
             IEnumerable<StudentInforResponse> studentsResponses = _mapper.Map<IEnumerable<StudentInforResponse>>(students);
             return Ok(new PaginationResponse<IEnumerable<StudentInforResponse>>(totalRecord, studentsResponses));
         }
-        
+
         /// <summary>
         /// Get student list not in classModule (to add student to classModule)
         /// </summary>
@@ -135,6 +136,21 @@ namespace examedu.Controllers
             (int totalRecord, IEnumerable<Student> students) = await _studentService.GetStudentsNotInClassModule(classId, moduleId, paginationParameter);
             IEnumerable<StudentResponse> studentsResponses = _mapper.Map<IEnumerable<StudentResponse>>(students);
             return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
+        }
+        [HttpGet("ConvertExcelToEmailList")]
+        public async Task<IActionResult> AssignClassByExcel([FromForm] IFormFile excelFile)
+        {
+            if (excelFile == null)
+            {
+                return BadRequest(new ResponseDTO(400, "ExcelFile is null"));
+            }
+            var convertResult = await _studentService.ConvertExcelToStudentEmailList(excelFile);
+            //item1 = list error; item2 = list email (su dung khi item1 length == 0)
+            if (convertResult.Item1.Count > 0)
+            {
+                return BadRequest(convertResult.Item1);
+            }
+            return Ok(convertResult.Item2);
         }
     }
 }

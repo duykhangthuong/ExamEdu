@@ -118,7 +118,7 @@ namespace BackEnd.Controllers
                 return NotFound(new ResponseDTO(404, "Email does not exist or has been deactivated"));
             }
 
-            int rs= await _accountService.ForgotPassword(email);
+            int rs= await _accountService.UpdatePasswordAndSendEmail(email);
             if(rs==1){
                 return Ok(new ResponseDTO(200, "An email contains new password has been sent to your email address. Please check your email to get the new password."));
             }else{

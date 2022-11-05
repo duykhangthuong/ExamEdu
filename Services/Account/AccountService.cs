@@ -154,7 +154,7 @@ namespace examedu.Services.Account
             return password;
         }
 
-        public async Task<int> ForgotPassword(string email)
+        public async Task<int> UpdatePasswordAndSendEmail(string email)
         {
             var student = await _dataContext.Students.FirstOrDefaultAsync(t => t.Email.ToUpper().Equals(email.ToUpper()) && t.DeactivatedAt == null);
             if (student != null)

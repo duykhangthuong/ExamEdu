@@ -1,23 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BackEnd.Helper.Email;
+using examedu.DTO.ExcelDTO;
 using examedu.DTO.StudentDTO;
 using ExamEdu.DB;
 using ExamEdu.DB.Models;
 using ExamEdu.DTO.PaginationDTO;
 using ExamEdu.Helper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace examedu.Services
 {
     public class StudentService : IStudentService
     {
         private readonly DataContext _dataContext;
+        private readonly IEmailHelper _emailHelper;
 
-        public StudentService(DataContext dataContext)
+        public StudentService(DataContext dataContext, IEmailHelper emailHelper)
         {
             _dataContext = dataContext;
+            _emailHelper = emailHelper;
         }
         /// <summary>
         /// get list of moduleMark of a module
@@ -203,6 +210,62 @@ namespace examedu.Services
             var distinctStudents =await queryResult.Distinct().ToListAsync();
 
             return Tuple.Create(distinctStudents.Count, distinctStudents.GetPage(paginationParameter));
+        }
+        public async Task<Tuple<List<CellErrorInfor>, List<string>>> ConvertExcelToStudentEmailList(IFormFile excelFile) // tra ve student co email va lop
+        {
+            List<string> listStudentClassReturn = new List<string>();
+            List<CellErrorInfor> cellErrorInfors = new List<CellErrorInfor>();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+                await excelFile.CopyToAsync(ms);
+
+                using (ExcelPackage package = new ExcelPackage(ms))
+                {
+                    ExcelWorksheet workSheet = package.Workbook.Worksheets[0];
+                    var totalRows = workSheet.Dimension.Rows;
+                    var totalColumn = workSheet.Dimension.Columns;
+
+                    for (int i = 2; i <= totalRows; i++)
+                    {
+                        string tempEmail = "";
+
+                        try
+                        {
+                            tempEmail = workSheet.Cells[i, 1].Value.ToString();
+                        }
+                        catch (System.Exception)
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 1,
+                                ErrorDetail = "The cell does not have value"
+                            });
+                        }
+                        if (tempEmail != null && !_emailHelper.IsValidEmail(tempEmail))
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 1,
+                                ErrorDetail = "The email is not in valid format"
+                            });
+                        }
+                        if (await _dataContext.Students.Where(m => m.Email == tempEmail).FirstOrDefaultAsync() == null)
+                        {
+                            cellErrorInfors.Add(new CellErrorInfor
+                            {
+                                RowIndex = i,
+                                ColumnIndex = 1,
+                                ErrorDetail = "The email is not exist in the system"
+                            });
+                        }
+                        listStudentClassReturn.Add(tempEmail);
+                    }
+                }
+                return Tuple.Create(cellErrorInfors, listStudentClassReturn);
+            }
         }
     }
 }
