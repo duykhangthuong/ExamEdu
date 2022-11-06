@@ -487,25 +487,34 @@ namespace ExamEdu.Services
         /// <returns></returns>
         public async Task<int> UpdateExam(Exam exam)
         {
+            // Query for exam with correct id
+            Exam dbExam = _db.Exams.FirstOrDefault(e => e.ExamId == exam.ExamId);
+
+            dbExam.ExamName = exam.ExamName;
+            dbExam.ExamDay = exam.ExamDay;
+            dbExam.DurationInMinute = exam.DurationInMinute;
+            dbExam.Description = exam.Description;
+            dbExam.Password = exam.Password;
+            dbExam.Room = exam.Room;
+            dbExam.ModuleId = exam.ModuleId;
+            dbExam.ProctorId = exam.ProctorId;
+            dbExam.SupervisorId = exam.SupervisorId;
+            dbExam.isFinalExam = exam.isFinalExam;
+
+            // Check if anything has changed
+            bool hasUnsavedChanges = _db.ChangeTracker.Entries<Exam>().Any(e => e.State == EntityState.Added 
+                                                    || e.State == EntityState.Deleted
+                                                    || e.State == EntityState.Modified);
+
+            if(!hasUnsavedChanges){
+                throw new Exception("Please change something!");
+            }
+
             //Checking exam name is unique
             if(_db.Exams.Any(e => e.ExamName.Equals(exam.ExamName)))
             {
                 throw new Exception("Exam name already exist");
             }
-
-            _db.Exams.Attach(exam);
-            var entry = _db.Entry(exam);
-
-            entry.Property(e => e.ExamName).IsModified = true;
-            entry.Property(e => e.ExamDay).IsModified = true;
-            entry.Property(e => e.DurationInMinute).IsModified = true;
-            entry.Property(e => e.Description).IsModified = true;
-            entry.Property(e => e.Password).IsModified = true;
-            entry.Property(e => e.Room).IsModified = true;
-            entry.Property(e => e.ModuleId).IsModified = true;
-            entry.Property(e => e.ProctorId).IsModified = true;
-            entry.Property(e => e.SupervisorId).IsModified = true;
-            entry.Property(e => e.isFinalExam).IsModified = true;
 
             int result = await _db.SaveChangesAsync();
 

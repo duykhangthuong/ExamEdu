@@ -201,7 +201,8 @@ namespace examedu.Services
                               select new Student
                               {
                                   StudentId = student.StudentId,
-                                  Fullname = student.Fullname
+                                  Fullname = student.Fullname,
+                                  Email = student.Email
                               };
             // var students = await queryResult.ToListAsync();
 

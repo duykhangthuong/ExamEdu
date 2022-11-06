@@ -225,7 +225,7 @@ namespace ExamEdu.Controllers
                 status = await _examService.UpdateExam(exam);
             }catch(Exception e)
             {
-                return BadRequest(new ResponseDTO(400, e.Message));
+                return Conflict(new ResponseDTO(409, e.Message));
             }
 
             if (status == 1)
