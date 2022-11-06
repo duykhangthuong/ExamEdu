@@ -52,7 +52,7 @@ namespace BackEnd.Controllers
             var studentExamInfo = _examService.GetStudentExamInfo(studentId, examId);
             if (studentExamInfo == null)
             {
-                return NotFound(new ResponseDTO(404, "Students do not have this exam"));
+                return NotFound(new ResponseDTO(404, "You do not have this exam"));
             }
             if (studentExamInfo.FinishAt != null)
             {
@@ -64,6 +64,10 @@ namespace BackEnd.Controllers
             }
             bool isFinalExam = _examService.IsFinalExam(examId);
             int examCode = await _examQuestionsService.GetRandomExamCodeByExamId(examId, isFinalExam);
+            if(examCode == -1)
+            {
+                return NotFound(new ResponseDTO(404, "This exam does not have any question."));
+            }
             List<int> questIdList = new List<int>();
             questIdList = await _examQuestionsService.GetListQuestionIdByExamIdAndExamCode(examId, examCode, isFinalExam);
             if (questIdList.Count <= 0)
@@ -83,8 +87,13 @@ namespace BackEnd.Controllers
                 return NotFound(new ResponseDTO(404, "Exam does not exist."));
             }
             bool isFinalExam = _examService.IsFinalExam(examId);
+            int examCode = await _examQuestionsService.GetRandomExamCodeByExamId(examId, isFinalExam);
+            if(examCode == -1)
+            {
+                return NotFound(new ResponseDTO(404, "This exam does not have any question."));
+            }
             List<int> questIdList = new List<int>();
-            questIdList = await _examQuestionsService.GetListQuestionIdByExamIdAndExamCode(examId, 1, isFinalExam);
+            questIdList = await _examQuestionsService.GetListQuestionIdByExamIdAndExamCode(examId, examCode, isFinalExam);
             if (questIdList.Count <= 0)
             {
                 return NotFound(new ResponseDTO(404, "This exam does not have any question."));

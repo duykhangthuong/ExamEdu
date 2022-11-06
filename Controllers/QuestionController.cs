@@ -74,12 +74,12 @@ namespace examedu.Controllers
         {
             if (await _teacherService.IsTeacherExist(input.RequesterId) == false)
             {
-                return NotFound(new ResponseDTO(404, "Requester is not exist"));
+                return NotFound(new ResponseDTO(404, "Requester does not exist"));
             }
 
             if (!_moduleService.IsModuleExist(input.Questions.First().ModuleId))
             {
-                return NotFound(new ResponseDTO(404, "Module is not exist"));
+                return NotFound(new ResponseDTO(404, "Module does not exist"));
             }
 
             IEnumerable<int> moduleIds = await _moduleService.GetAllModuleIdByTeacherId(input.RequesterId);
@@ -92,7 +92,7 @@ namespace examedu.Controllers
             {
                 if (_levelService.IsLevelExist(levelId) == false)
                 {
-                    return NotFound(new ResponseDTO(404, "Level is not exist"));
+                    return NotFound(new ResponseDTO(404, "Level does not exist"));
                 }
             }
 
@@ -156,17 +156,17 @@ namespace examedu.Controllers
 
             if (await _teacherService.IsTeacherExist(teacherId) == false)
             {
-                return NotFound(new ResponseDTO(404, "Teacher is not exist"));
+                return NotFound(new ResponseDTO(404, "Teacher does not exist"));
             }
 
             int rs = await _questionService.AssignTeacherToApproveRequest(addQuestionRequestId, teacherId);
             if (rs == -1)
             {
-                return Conflict(new ResponseDTO(409, "Request has already assigned"));
+                return Conflict(new ResponseDTO(409, "Request has been already assigned"));
             }
             if (rs == -2)
             {
-                return NotFound(new ResponseDTO(404, "Request is not exist"));
+                return NotFound(new ResponseDTO(404, "Request does not exist"));
             }
             else if (rs == 0)
             {
@@ -183,7 +183,7 @@ namespace examedu.Controllers
         {
             if (await _questionService.IsRequestExist(addQuestionRequestId) == false)
             {
-                return NotFound(new ResponseDTO(404, "Request is not exist"));
+                return NotFound(new ResponseDTO(404, "Request does not exist"));
             }
 
             AddQuestionRequest request = await _questionService.GetRequestAddQuestionBankDetail(addQuestionRequestId);
@@ -210,7 +210,7 @@ namespace examedu.Controllers
                 rs = await _questionService.ApproveQuestion(input);
                 if (rs == -1)
                 {
-                    return NotFound(new ResponseDTO(404, "Question is not exist or has been approved"));
+                    return NotFound(new ResponseDTO(404, "Question does not exist or has been approved"));
                 }
                 else if (rs == 0)
                 {
@@ -225,7 +225,7 @@ namespace examedu.Controllers
         {
             if (await _teacherService.IsTeacherExist(approverId) == false)
             {
-                return NotFound(new ResponseDTO(404, "Approver is not exist"));
+                return NotFound(new ResponseDTO(404, "Approver does not exist"));
             }
 
             (int totalRecord, IEnumerable<AddQuestionRequest> requestList) = await _questionService.GetAllRequestAddQuestionByApproverId(approverId, paginationParameter);

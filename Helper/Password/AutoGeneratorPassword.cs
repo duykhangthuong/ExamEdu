@@ -20,7 +20,7 @@ namespace ExamEdu.Helper
             string password = "";
 		    int charLeft = lenght - numberOfLowerCase - numberOfUpperCase - number;
             if(charLeft < 0){
-                throw new Exception("Number Of Lowercase or Uppercase or number can't be larger than lenght of password");
+                throw new Exception("Number Of Lowercase or Uppercase or number can't be larger than length of password");
             }
             string upperList = "QWERTYUIOPASDFGHJKLZXCVBNM";
             string lowerList = "qwertyuiopasdfghjklzxcvbnm";

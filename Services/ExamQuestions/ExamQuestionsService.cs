@@ -41,6 +41,10 @@ namespace BackEnd.Services.ExamQuestions
             if (isFinalExam)
             {
                 var examCodeList = _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId).Select(e => e.ExamCode);
+                if(examCodeList.Count() <= 0)
+                {
+                    return -1;
+                }
                 toSkip = rand.Next(1, examCodeList.Count());
                 //return await _dataContext.Exam_FEQuestions.Where(e => e.ExamId == examId).OrderBy(r => Guid.NewGuid()).Select(e => e.ExamCode).FirstOrDefaultAsync();
                 return await examCodeList.Skip(toSkip).Take(1).FirstOrDefaultAsync();
@@ -48,6 +52,10 @@ namespace BackEnd.Services.ExamQuestions
             else
             {
                 var examCodeList = _dataContext.ExamQuestions.Where(e => e.ExamId == examId).Select(e => e.ExamCode);
+                if(examCodeList.Count() <= 0)
+                {
+                    return -1;
+                }
                 toSkip = rand.Next(1, examCodeList.Count());
                 //return await _dataContext.ExamQuestions.Where(e => e.ExamId == examId).OrderBy(r => Guid.NewGuid()).Select(e => e.ExamCode).FirstOrDefaultAsync();
                 return await examCodeList.Skip(toSkip).Take(1).FirstOrDefaultAsync();

@@ -146,7 +146,7 @@ namespace examedu.Services.Account
 
         private string processPasswordAndSendEmail(string email)
         {
-            string password = AutoGeneratorPassword.passwordGenerator(15, 5, 5, 5);
+            string password = AutoGeneratorPassword.passwordGenerator(7, 2, 2, 2);
 
             sendEmail(email, password);
             password = BCrypt.Net.BCrypt.HashPassword(password);

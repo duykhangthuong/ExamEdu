@@ -89,11 +89,11 @@ namespace examedu.Controllers
             int addResult = await _accountService.InsertNewAccount(accountInput);
             if (addResult == 0)
             {
-                return Conflict(new ResponseDTO(409, "The email is existed"));
+                return Conflict(new ResponseDTO(409, "Email is already existed"));
             }
             if (addResult == -1)
             {
-                return BadRequest(new ResponseDTO(400, "Error when add account"));
+                return BadRequest(new ResponseDTO(400, "Something went wrong. Please try again"));
             }
             return CreatedAtAction(nameof(GetAccountList), new ResponseDTO(201, "Successfully inserted"));
         }
@@ -136,13 +136,13 @@ namespace examedu.Controllers
 
             if (result == -1)
             {
-                return NotFound(new ResponseDTO(404, "Id not found!"));
+                return NotFound(new ResponseDTO(404, "ID not found!"));
             }
             if (result == 0)
             {
                 return BadRequest(new ResponseDTO(400, "Deactivate failed"));
             }
-            return Ok(new ResponseDTO(200, "Deleted!"));
+            return Ok(new ResponseDTO(200, "Account has been deactived successfully!"));
         }
 
         [HttpGet]
