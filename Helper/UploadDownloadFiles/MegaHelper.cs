@@ -13,7 +13,7 @@ namespace ExamEdu.Helper.UploadDownloadFiles
         public MegaHelper(string username, string password)
         {
             client = new MegaApiClient();
-            // client.Login(username, password);
+            client.Login(username, password);
         }
         public async Task<String> Upload(Stream data, string fileName, string folderName)
         {

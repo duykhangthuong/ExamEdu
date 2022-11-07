@@ -111,7 +111,7 @@ namespace examedu.Controllers
         {
             if (await _teacherService.IsHeadOfDepartment(id) == false)
             {
-                return StatusCode(403, new ResponseDTO(403));
+                return StatusCode(404, new ResponseDTO(404));
             }
 
             (int totalRecord, IEnumerable<AddQuestionRequest> requestList) = await _questionService.GetAllRequestAddQuestionBank(paginationParameter);
