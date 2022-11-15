@@ -318,5 +318,12 @@ namespace ExamEdu.Controllers
 
             return Ok(new PaginationResponse<IEnumerable<ExamProctorResponse>>(totalRecord, examListResponse));
         }
+        [HttpGet("SEB")]
+        public IActionResult CheckSEB()
+        {
+            // get header from http request
+            var headers = Request.Headers;
+            return Ok(headers);
+        }
     }
 }

@@ -20,19 +20,35 @@ namespace ExamEdu.Controllers
         private readonly IMapper _mapper;
         private readonly IMarkService _markService;
         private readonly IExamService _examService;
+        private readonly IStudentService _studentService;
         public AnswerController(IStudentAnswerService studentAnswerService,
                                 IMapper mapper,
                                 IMarkService markService,
-                                IExamService examService)
+                                IExamService examService,
+                                IStudentService studentService)
         {
             _studentAnswerService = studentAnswerService;
             _mapper = mapper;
             _markService = markService;
             _examService = examService;
+            _studentService = studentService;
         }
         [HttpPost("PT")]
         public async Task<IActionResult> SubmitAnswer(List<StudentAnswerInput> answerInputs, int examId, int studentId)
         {
+            if (_examService.IsExist(examId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Exam does not exist."));
+            }
+            if (_studentService.CheckStudentExist(studentId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Student does not exist."));
+            }
+            var studentExamInfo = _examService.GetStudentExamInfo(studentId, examId);
+            if (studentExamInfo == null)
+            {
+                return NotFound(new ResponseDTO(404, "Students do not have this exam"));
+            }
             var answers = _mapper.Map<List<StudentAnswer>>(answerInputs);
             var rs = await _studentAnswerService.InsertStudentAnswers(answers);
             if (rs == -1)
@@ -54,6 +70,19 @@ namespace ExamEdu.Controllers
         [HttpPost("FE")]
         public async Task<IActionResult> SubmitFEAnswer(List<StudentFEAnswerInput> answerInputs, int examId, int studentId)
         {
+            if (_examService.IsExist(examId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Exam does not exist."));
+            }
+            if (_studentService.CheckStudentExist(studentId) == false)
+            {
+                return NotFound(new ResponseDTO(404, "Student does not exist."));
+            }
+            var studentExamInfo = _examService.GetStudentExamInfo(studentId, examId);
+            if (studentExamInfo == null)
+            {
+                return NotFound(new ResponseDTO(404, "Students do not have this exam"));
+            }
             var answers = _mapper.Map<List<StudentFEAnswer>>(answerInputs);
             var rs = await _studentAnswerService.InsertFEStudentAnswers(answers);
             if (rs == -1)

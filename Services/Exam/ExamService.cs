@@ -44,7 +44,8 @@ namespace ExamEdu.Services
                 e
             }).Where(x => x.sei.StudentId == studentId
                         && x.sei.FinishAt == null
-                        && x.e.ExamDay.AddMinutes(x.e.DurationInMinute) > DateTime.Now)
+                        && x.e.ExamDay.AddMinutes(x.e.DurationInMinute) > DateTime.Now
+                        && x.e.IsCancelled == false)
                                                                             .Select(x => new Exam
                                                                             {
                                                                                 ExamId = x.e.ExamId,

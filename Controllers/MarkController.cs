@@ -25,7 +25,7 @@ namespace ExamEdu.Controllers
             int result = await _markService.UpdateStudentMarkByTextAnswer(studentId, examId, markInputs);
             if (result == -1)
             {
-                return BadRequest(new ResponseDTO(400, "Your mark input is invalid"));
+                return BadRequest(new ResponseDTO(400, "Your mark input is greater than the maximum mark"));
             }
             else if (result >= 1)
             {
