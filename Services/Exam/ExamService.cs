@@ -510,8 +510,8 @@ namespace ExamEdu.Services
                 throw new Exception("Please change something!");
             }
 
-            //Checking exam name is unique
-            if(_db.Exams.Any(e => e.ExamName.Equals(exam.ExamName)))
+            // TODO: Checking exam name is unique in other entries except the current one
+            if(_db.Exams.Where(e => e.ExamId != exam.ExamId).Any(e => e.ExamName == exam.ExamName))
             {
                 throw new Exception("Exam name already exist");
             }
