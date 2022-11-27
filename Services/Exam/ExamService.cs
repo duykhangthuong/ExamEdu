@@ -372,7 +372,7 @@ namespace ExamEdu.Services
         public async Task<Tuple<int, int>> CreateExamInfo(Exam exam)
         {
             //verify exam name is unique
-            if(_db.Exams.Any(e => e.ExamName.Equals(exam.ExamName)))
+            if (_db.Exams.Any(e => e.ExamName.Equals(exam.ExamName)))
             {
                 throw new Exception("Exam name already exist");
             }
@@ -503,11 +503,12 @@ namespace ExamEdu.Services
             dbExam.isFinalExam = exam.isFinalExam;
 
             // Check if anything has changed
-            bool hasUnsavedChanges = _db.ChangeTracker.Entries<Exam>().Any(e => e.State == EntityState.Added 
+            bool hasUnsavedChanges = _db.ChangeTracker.Entries<Exam>().Any(e => e.State == EntityState.Added
                                                     || e.State == EntityState.Deleted
                                                     || e.State == EntityState.Modified);
 
-            if(!hasUnsavedChanges){
+            if (!hasUnsavedChanges)
+            {
                 throw new Exception("Please change something!");
             }
 
@@ -745,8 +746,8 @@ namespace ExamEdu.Services
         public async Task<Tuple<int, IEnumerable<Exam>>> GetExamByProctorId(int proctorId, PaginationParameter paginationParameter)
         {
             var examList = await _db.Exams
-                                .Where(e => e.ProctorId == proctorId && 
-                                        (e.ExamName.ToUpper().Contains(paginationParameter.SearchName.ToUpper()) 
+                                .Where(e => e.ProctorId == proctorId &&
+                                        (e.ExamName.ToUpper().Contains(paginationParameter.SearchName.ToUpper())
                                         || e.Module.ModuleCode.ToUpper().Contains(paginationParameter.SearchName.ToUpper())))
                                 .Select(e => new Exam
                                 {
@@ -765,6 +766,20 @@ namespace ExamEdu.Services
                                 .OrderByDescending(e => e.ExamDay)
                                 .ToListAsync();
             return new Tuple<int, IEnumerable<Exam>>(examList.Count(), examList.GetPage(paginationParameter));
+        }
+        public async Task<int> UpdateMaxTimeToFinishExamOfStudent(int examId, int studentId)
+        {
+            var examDuration = await _db.Exams.Where(e => e.ExamId == examId).Select(e => e.DurationInMinute).FirstOrDefaultAsync();
+            var studentExamInfo = await _db.StudentExamInfos.Where(sei => sei.ExamId == examId && sei.StudentId == studentId).FirstOrDefaultAsync();
+            if (studentExamInfo == null)
+            {
+                return 0;
+            }
+            if (studentExamInfo.MaxFinishTime is null)
+                studentExamInfo.MaxFinishTime = DateTime.Now + TimeSpan.FromMinutes(examDuration);
+            else
+                return -1;
+            return await _db.SaveChangesAsync();
         }
     }
 }

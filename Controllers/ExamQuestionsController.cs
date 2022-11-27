@@ -75,6 +75,7 @@ namespace BackEnd.Controllers
                 return NotFound(new ResponseDTO(404, "This exam does not have any question."));
             }
             ExamQuestionsResponse examQuestionsResponse = _mapper.Map<ExamQuestionsResponse>(exam);
+            examQuestionsResponse.MaxFinishTime = studentExamInfo.MaxFinishTime ;
             examQuestionsResponse.QuestionAnswer = await _questionService.GetListQuestionAnswerByListQuestionId(questIdList, examId, examCode, isFinalExam);
             return Ok(examQuestionsResponse);
         }

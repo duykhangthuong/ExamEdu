@@ -173,11 +173,12 @@ namespace ExamEdu.Controllers
             try
             {
                 insertResult = await _examService.CreateExamInfo(exam);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return BadRequest(new ResponseDTO(400, e.Message));
             }
-            
+
             if (insertResult.Item1 < 1)
             {
                 return BadRequest(new ResponseDTO(400, "Error when insert exam"));
@@ -223,7 +224,8 @@ namespace ExamEdu.Controllers
             try
             {
                 status = await _examService.UpdateExam(exam);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return Conflict(new ResponseDTO(409, e.Message));
             }
@@ -324,6 +326,21 @@ namespace ExamEdu.Controllers
             // get header from http request
             var headers = Request.Headers;
             return Ok(headers);
+        }
+        [HttpPut("maxFinishTime")]
+        public async Task<IActionResult> UpdateMaxFinishTime(int examId, int studentId)
+        {
+            int result = await _examService.UpdateMaxTimeToFinishExamOfStudent(examId, studentId);
+            if (result == 0)
+            {
+                return BadRequest(new ResponseDTO(400, "Not found"));
+            }
+            else if(result == -1)
+            {
+                return BadRequest(new ResponseDTO(400, "You have already joined this exam before"));
+            }
+            return Ok(new ResponseDTO(200, "Update successfully"));
+            
         }
     }
 }

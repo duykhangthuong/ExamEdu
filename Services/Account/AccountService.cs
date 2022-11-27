@@ -70,7 +70,14 @@ namespace examedu.Services.Account
             foreach (var item in teachers)
             {
                 var itemToResponse = _mapper.Map<AccountResponse>(item);
-                itemToResponse.RoleName = getRoleName(item.RoleId);
+                if (item.isHeadOfDepartment)
+                {
+                    itemToResponse.RoleName = "Head Of Department";
+                }
+                else
+                {
+                    itemToResponse.RoleName = getRoleName(item.RoleId);
+                }
                 totalAccount.Add(itemToResponse);
             }
 
@@ -243,6 +250,20 @@ namespace examedu.Services.Account
                     academicDepartToAdd.RoleId = accountInput.RoleID;
                     academicDepartToAdd.Password = processPasswordAndSendEmail(academicDepartToAdd.Email);
                     _dataContext.AcademicDepartments.Add(academicDepartToAdd);
+                    if (await _dataContext.SaveChangesAsync() != 1)
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        return 1;
+                    }
+                case 5:
+                    var HeadOfDepToAdd = _mapper.Map<Teacher>(accountInput);
+                    HeadOfDepToAdd.RoleId = 2; //role teacher id
+                    HeadOfDepToAdd.Password = processPasswordAndSendEmail(HeadOfDepToAdd.Email);
+                    HeadOfDepToAdd.isHeadOfDepartment = true;
+                    _dataContext.Teachers.Add(HeadOfDepToAdd);
                     if (await _dataContext.SaveChangesAsync() != 1)
                     {
                         return -1;
@@ -451,6 +472,13 @@ namespace examedu.Services.Account
         public async Task<int> UpdateAccount(UpdateAccountInput accountInput, int roleId, string currEmail)
         {
             int rowUpdated = 0;
+
+            PaginationParameter paginationParameter = new PaginationParameter { PageNumber = 1, PageSize = 1, SearchName = accountInput.Email };
+            if (GetAccountList(paginationParameter).Item1 >= 1 || GetDeactivatedAccountList(paginationParameter).Item1 >= 1)
+            {
+                return -2;
+            }
+
             switch (roleId)
             {
                 case 1:

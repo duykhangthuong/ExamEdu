@@ -21,6 +21,7 @@ using OfficeOpenXml;
 
 namespace examedu.Controllers
 {
+    [ApiController]
     [Authorize]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
@@ -98,9 +99,9 @@ namespace examedu.Controllers
             return CreatedAtAction(nameof(GetAccountList), new ResponseDTO(201, "Successfully inserted"));
         }
         [HttpPost("excel")]
-        public async Task<ActionResult> CreateNewAccountByExcel([FromForm] IFormFile excelFile,[FromForm] int roleId)
+        public async Task<ActionResult> CreateNewAccountByExcel([FromForm] IFormFile excelFile, [FromForm] int roleId)
         {
-            var convertResult = await _accountService.convertExcelToAccountInputList(excelFile); 
+            var convertResult = await _accountService.convertExcelToAccountInputList(excelFile);
             //item1 = list error; item2 = list account (su dung khi item1 length == 0)
             if (convertResult.Item1.Count > 0)
             {
@@ -118,7 +119,7 @@ namespace examedu.Controllers
             }
             if (insertResult.Item1 == convertResult.Item2.Count)
             {
-                return Ok( new ResponseDTO(201, "Successfully inserted"));
+                return Ok(new ResponseDTO(201, "Successfully inserted"));
             }
             return BadRequest(new ResponseDTO(400, "Error when inserted, upload again for more detail"));
         }
@@ -176,6 +177,10 @@ namespace examedu.Controllers
             if (rs == -1)
             {
                 return NotFound(new ResponseDTO(404, "Account not exist"));
+            }
+            else if (rs == -2)
+            {
+                return Conflict(new ResponseDTO(409, "Email is already existed"));
             }
             else if (rs == 0)
             {

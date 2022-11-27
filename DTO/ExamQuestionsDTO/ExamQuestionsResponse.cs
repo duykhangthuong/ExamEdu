@@ -12,6 +12,7 @@ namespace BackEnd.DTO.ExamQuestionsDTO
         public int ModuleId { get; set; }
         public string ModuleCode { get; set; }
         public int DurationInMinute { get; set; }
+        public DateTime? MaxFinishTime { get; set; }
         public List<QuestionAnswerResponse> QuestionAnswer { get; set; }
 
        

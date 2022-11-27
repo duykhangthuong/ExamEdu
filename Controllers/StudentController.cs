@@ -137,12 +137,13 @@ namespace examedu.Controllers
             IEnumerable<StudentResponse> studentsResponses = _mapper.Map<IEnumerable<StudentResponse>>(students);
             return Ok(new PaginationResponse<IEnumerable<StudentResponse>>(totalRecord, studentsResponses));
         }
-        [HttpGet("ConvertExcelToEmailList")]
+        
+        [HttpPost("ConvertExcelToEmailList")]
         public async Task<IActionResult> AssignClassByExcel([FromForm] IFormFile excelFile)
         {
             if (excelFile == null)
             {
-                return BadRequest(new ResponseDTO(400, "ExcelFile is null"));
+                return Conflict(new ResponseDTO(409, "ExcelFile is null"));
             }
             var convertResult = await _studentService.ConvertExcelToStudentEmailList(excelFile);
             //item1 = list error; item2 = list email (su dung khi item1 length == 0)

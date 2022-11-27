@@ -38,5 +38,6 @@ namespace ExamEdu.Services
         Task<byte[]> GenerateModuleProgressExamReport(int classModuleId, int moduleId);
         Task<Exam> GetExamDetailByExamId(int examId);
         Task<Tuple<int, IEnumerable<Exam>>> GetExamByProctorId(int proctorId, PaginationParameter paginationParameter);
+        Task<int> UpdateMaxTimeToFinishExamOfStudent(int examId, int studentId);
     }
 }
