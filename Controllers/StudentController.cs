@@ -143,7 +143,7 @@ namespace examedu.Controllers
         {
             if (excelFile == null)
             {
-                return Conflict(new ResponseDTO(409, "ExcelFile is null"));
+                return Conflict(new ResponseDTO(409, "Excel file is null"));
             }
             var convertResult = await _studentService.ConvertExcelToStudentEmailList(excelFile);
             //item1 = list error; item2 = list email (su dung khi item1 length == 0)
