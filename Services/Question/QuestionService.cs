@@ -132,7 +132,8 @@ namespace examedu.Services
                                                 })
                                                 .FirstOrDefaultAsync();
                     var questionAnswerResponse = _mapper.Map<QuestionAnswerForViewingResponse>(question);
-                    List<FEAnswer> answerList = await _dataContext.FEAnswers.Where(ans => ans.FEAnswerId == question.FEQuestionId).ToListAsync();
+                    questionAnswerResponse.Answers = new List<AnswerContentForViewingResponse>();
+                    List<FEAnswer> answerList = await _dataContext.FEAnswers.Where(ans => ans.FEQuestionId == question.FEQuestionId).ToListAsync();
                     foreach (var answer in answerList)
                     {
                         questionAnswerResponse.Answers.Add(_mapper.Map<AnswerContentForViewingResponse>(answer));
